@@ -10,8 +10,8 @@
 namespace esphome {
 namespace delta_solivia {
 
-// number of inverters to support (mapped to client addresses)
-#define NUM_INVERTERS 2
+// logging tag
+#define LOG_TAG "DeltaSolivia"
 
 // protocol characters (page 7)
 #define ENQ 0x05
@@ -28,6 +28,7 @@ using uart::UARTComponent;
 class Inverter {
   protected:
     uint8_t address_;
+    uint32_t last_updated_millis;
 
   public:
     Sensor* solar_voltage_ { nullptr };
@@ -45,7 +46,7 @@ class Inverter {
     Sensor* max_ac_power_today_ { nullptr };
     Sensor* max_solar_input_power_ { nullptr };
 
-    explicit Inverter(uint8_t address) : address_(address) {}
+    explicit Inverter(uint8_t address) : address_(address), last_updated_millis(0) {}
 
     uint8_t get_address() { return address_; }
     void set_solar_voltage(Sensor* solar_voltage) { solar_voltage_ = solar_voltage; }
@@ -62,6 +63,80 @@ class Inverter {
     void set_supplied_ac_energy(Sensor* supplied_ac_energy) { supplied_ac_energy_ = supplied_ac_energy; }
     void set_max_ac_power_today(Sensor* max_ac_power_today) { max_ac_power_today_ = max_ac_power_today; }
     void set_max_solar_input_power(Sensor* max_solar_input_power) { max_solar_input_power_ = max_solar_input_power; }
+
+    bool last_update_older_than(uint32_t throttle_ms) {
+      uint32_t current_millis = millis();
+
+      if (current_millis - last_updated_millis < throttle_ms) {
+        return false;
+      }
+      last_updated_millis = current_millis;
+      return true;
+    }
+
+    void update(const std::vector<uint8_t>& bytes) {
+      ESP_LOGD(LOG_TAG, "INVERTER#%u - updating sensors", address_);
+
+      // parse buffer and update sensors
+      Variant15Parser parser(bytes, true);
+      parser.parse();
+
+      if (solar_voltage_ != nullptr) {
+        solar_voltage_->publish_state(parser.Solar_voltage_input_1);
+      }
+
+      if (solar_current_ != nullptr) {
+        solar_current_->publish_state(parser.Solar_current_input_1);
+      }
+
+      if (ac_current_ != nullptr) {
+        ac_current_->publish_state(parser.AC_current);
+      }
+
+      if (ac_voltage_ != nullptr) {
+        ac_voltage_->publish_state(parser.AC_voltage);
+      }
+
+      if (ac_power_ != nullptr) {
+        ac_power_->publish_state(parser.AC_power);
+      }
+
+      if (ac_frequency_ != nullptr) {
+        ac_frequency_->publish_state(parser.AC_frequency);
+      }
+
+      if (grid_ac_voltage_ != nullptr) {
+        grid_ac_voltage_->publish_state(parser.AC_Grid_voltage);
+      }
+
+      if (grid_ac_frequency_ != nullptr) {
+        grid_ac_frequency_->publish_state(parser.AC_Grid_frequency);
+      }
+
+      if (inverter_runtime_minutes_ != nullptr) {
+        inverter_runtime_minutes_->publish_state(parser.Inverter_runtime_minutes);
+      }
+
+      if (day_supplied_ac_energy_ != nullptr) {
+        day_supplied_ac_energy_->publish_state(parser.Day_supplied_ac_energy);
+      }
+
+      if (max_ac_power_today_ != nullptr) {
+        max_ac_power_today_->publish_state(parser.Max_ac_power_today);
+      }
+
+      if (max_solar_input_power_ != nullptr) {
+        max_solar_input_power_->publish_state(parser.Max_solar_1_input_power);
+      }
+
+      if (inverter_runtime_hours_ != nullptr) {
+        inverter_runtime_hours_->publish_state(parser.Inverter_runtime_hours);
+      }
+
+      if (supplied_ac_energy_ != nullptr) {
+        supplied_ac_energy_->publish_state(parser.Supplied_ac_energy);
+      }
+    }
 };
 
 class DeltaSoliviaComponent: public PollingComponent, public UARTDevice {
@@ -94,13 +169,13 @@ class DeltaSoliviaComponent: public PollingComponent, public UARTDevice {
 
     // set throttle interval
     void set_throttle(uint32_t ms) {
-      ESP_LOGD("SoliviaG3", "CONFIG - setting throttle interval to %u ms", ms);
+      ESP_LOGD(LOG_TAG, "CONFIG - setting throttle interval to %u ms", ms);
       throttle_ms = ms;
     }
 
     // add an inverter
     void add_inverter(Inverter* inverter) {
-      ESP_LOGD("SoliviaG3", "CONFIG - added inverter with address %u", inverter->get_address());
+      ESP_LOGD(LOG_TAG, "CONFIG - added inverter with address %u", inverter->get_address());
       inverters[inverter->get_address()] = inverter;
     }
 
@@ -124,7 +199,7 @@ class DeltaSoliviaComponent: public PollingComponent, public UARTDevice {
         }
 
         // perform a quick check to see if this is a protocol header
-        if (bytes[0] != STX || bytes[1] != ACK || bytes[2] == 0 || bytes[2] > NUM_INVERTERS || bytes[4] != 0x60 || bytes[5] != 0x01) {
+        if (bytes[0] != STX || bytes[1] != ACK || bytes[2] == 0 || bytes[4] != 0x60 || bytes[5] != 0x01) {
           bytes.erase(bytes.begin());
           continue;
         }
@@ -132,13 +207,13 @@ class DeltaSoliviaComponent: public PollingComponent, public UARTDevice {
         // read full packet
         unsigned int required_size = 6 + bytes[3] + 3;
         if (bytes.size() != required_size) {
-          //ESP_LOGI("SoliviaG3", "BYTES READ = %u NEED %u", bytes.size(), required_size);
+          //ESP_LOGI(LOG_TAG, "BYTES READ = %u NEED %u", bytes.size(), required_size);
           continue;
         }
 
         // should have a valid header here
-        ESP_LOGD("SoliviaG3", "PACKET - header = %02x%02x%02x%02x%02x%02x", bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5]);
-        ESP_LOGD("SoliviaG3", "       - SOP = 0x%02x, PC = 0x%02x, address = %u, data size = %u, cmd = 0x%02x, sub cmd = 0x%02x",
+        ESP_LOGD(LOG_TAG, "PACKET - header = %02x%02x%02x%02x%02x%02x", bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5]);
+        ESP_LOGD(LOG_TAG, "       - SOP = 0x%02x, PC = 0x%02x, address = %u, data size = %u, cmd = 0x%02x, sub cmd = 0x%02x",
           bytes[0],
           bytes[1],
           bytes[2],
@@ -151,7 +226,7 @@ class DeltaSoliviaComponent: public PollingComponent, public UARTDevice {
         /*
         const uint16_t packet_crc = *reinterpret_cast<const uint16_t*>(&bytes[155]);
         unsigned int calculated_crc = calc_crc(&bytes[1], &bytes[154]);
-        ESP_LOGI("SoliviaG3", "PACKET - packet CRC = 0x%04X (0x%02X%02X), calculated CRC = 0x%X, idx = %u",
+        ESP_LOGI(LOG_TAG, "PACKET - packet CRC = 0x%04X (0x%02X%02X), calculated CRC = 0x%X, idx = %u",
             packet_crc,
             bytes[155],
             bytes[156],
@@ -163,75 +238,11 @@ class DeltaSoliviaComponent: public PollingComponent, public UARTDevice {
         continue;
         */
 
-        //ESP_LOGI("SoliviaG3", "PACKET - valid measurement/statistics packet");
+        // update inverter (if it's known and should be updated)
+        auto inverter = get_inverter(bytes[2]);
 
-        // check if this is addressed to an inverter we know
-        uint8_t address = bytes[2];
-        auto inverter   = get_inverter(address);
-
-        if (inverter == nullptr) {
-          bytes.clear();
-          continue;
-        }
-
-        // parse buffer and update sensors
-        Variant15Parser parser(bytes, true);
-        parser.parse();
-
-        if (inverter->solar_voltage_ != nullptr) {
-          inverter->solar_voltage_->publish_state(parser.Solar_voltage_input_1);
-        }
-
-        if (inverter->solar_current_ != nullptr) {
-          inverter->solar_current_->publish_state(parser.Solar_current_input_1);
-        }
-
-        if (inverter->ac_current_ != nullptr) {
-          inverter->ac_current_->publish_state(parser.AC_current);
-        }
-
-        if (inverter->ac_voltage_ != nullptr) {
-          inverter->ac_voltage_->publish_state(parser.AC_voltage);
-        }
-
-        if (inverter->ac_power_ != nullptr) {
-          inverter->ac_power_->publish_state(parser.AC_power);
-        }
-
-        if (inverter->ac_frequency_ != nullptr) {
-          inverter->ac_frequency_->publish_state(parser.AC_frequency);
-        }
-
-        if (inverter->grid_ac_voltage_ != nullptr) {
-          inverter->grid_ac_voltage_->publish_state(parser.AC_Grid_voltage);
-        }
-
-        if (inverter->grid_ac_frequency_ != nullptr) {
-          inverter->grid_ac_frequency_->publish_state(parser.AC_Grid_frequency);
-        }
-
-        if (inverter->inverter_runtime_minutes_ != nullptr) {
-          inverter->inverter_runtime_minutes_->publish_state(parser.Inverter_runtime_minutes);
-        }
-
-        if (inverter->day_supplied_ac_energy_ != nullptr) {
-          inverter->day_supplied_ac_energy_->publish_state(parser.Day_supplied_ac_energy);
-        }
-
-        if (inverter->max_ac_power_today_ != nullptr) {
-          inverter->max_ac_power_today_->publish_state(parser.Max_ac_power_today);
-        }
-
-        if (inverter->max_solar_input_power_ != nullptr) {
-          inverter->max_solar_input_power_->publish_state(parser.Max_solar_1_input_power);
-        }
-
-        if (inverter->inverter_runtime_hours_ != nullptr) {
-          inverter->inverter_runtime_hours_->publish_state(parser.Inverter_runtime_hours);
-        }
-
-        if (inverter->supplied_ac_energy_ != nullptr) {
-          inverter->supplied_ac_energy_->publish_state(parser.Supplied_ac_energy);
+        if (inverter != nullptr && inverter->last_update_older_than(throttle_ms)) {
+          inverter->update(bytes);
         }
 
         // done
