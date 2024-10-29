@@ -175,7 +175,7 @@ async def to_code(config):
     await uart.register_uart_device(var, config)
     cg.add(var.set_throttle(config[CONF_THROTTLE]))
     for inv_conf in config[CONF_INVERTERS]:
-        inverter = cg.new_Pvariable(inv_conf[CONF_ID], Inverter())
+        inverter = cg.new_Pvariable(inv_conf[CONF_ID], Inverter(inv_conf[CONF_INV_ADDRESS]))
 
         if CONF_INV_TOTAL_ENERGY in inv_conf:
             sens = await sensor.new_sensor(inv_conf[CONF_INV_TOTAL_ENERGY])
@@ -233,5 +233,5 @@ async def to_code(config):
             sens = await sensor.new_sensor(inv_conf[CONF_INV_MAX_SOLAR_INPUT_POWER])
             cg.add(inverter.set_max_solar_input_power(sens))
 
-        cg.add(var.add_client(inv_conf.get("address"), inverter))
+        cg.add(var.add_inverter(inverter))
 

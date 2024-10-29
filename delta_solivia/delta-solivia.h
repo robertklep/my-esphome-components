@@ -27,6 +27,9 @@ using uart::UARTComponent;
 
 class Inverter {
   protected:
+    uint8_t address_;
+
+  public:
     Sensor* solar_voltage_ { nullptr };
     Sensor* solar_current_ { nullptr };
     Sensor* ac_current_ { nullptr };
@@ -41,7 +44,10 @@ class Inverter {
     Sensor* supplied_ac_energy_ { nullptr };
     Sensor* max_ac_power_today_ { nullptr };
     Sensor* max_solar_input_power_ { nullptr };
-  public:
+
+    explicit Inverter(uint8_t address) : address_(address) {}
+
+    uint8_t get_address() { return address_; }
     void set_solar_voltage(Sensor* solar_voltage) { solar_voltage_ = solar_voltage; }
     void set_solar_current(Sensor* solar_current) { solar_current_ = solar_current; }
     void set_ac_current(Sensor* ac_current) { ac_current_ = ac_current; }
@@ -60,6 +66,7 @@ class Inverter {
 
 class DeltaSoliviaComponent: public PollingComponent, public UARTDevice {
   uint32_t throttle_ms = 10000;
+  std::map<uint8_t, Inverter*> inverters;
 
   unsigned int calc_crc(unsigned char *sop, unsigned char *eop) {
     unsigned int crc;
@@ -83,9 +90,6 @@ class DeltaSoliviaComponent: public PollingComponent, public UARTDevice {
     return crc;
   }
 
-  protected:
-    std::map<uint8_t, Inverter*> inverters;
-
   public:
 
     // set throttle interval
@@ -94,13 +98,14 @@ class DeltaSoliviaComponent: public PollingComponent, public UARTDevice {
       throttle_ms = ms;
     }
 
-    // add a client
-    void add_client(uint8_t address, Inverter* client) {
-      inverters[address] = client;
+    // add an inverter
+    void add_inverter(Inverter* inverter) {
+      ESP_LOGD("SoliviaG3", "CONFIG - added inverter with address %u", inverter->get_address());
+      inverters[inverter->get_address()] = inverter;
     }
 
-    // get client
-    Inverter* get_client(uint8_t address) {
+    // get inverter
+    Inverter* get_inverter(uint8_t address) {
       return inverters.count(address) == 1 ? inverters[address] : nullptr;
     }
 
@@ -160,32 +165,74 @@ class DeltaSoliviaComponent: public PollingComponent, public UARTDevice {
 
         //ESP_LOGI("SoliviaG3", "PACKET - valid measurement/statistics packet");
 
-        // parse data
-        uint8_t address = bytes[2] - 1; // client ids are 1-based
+        // check if this is addressed to an inverter we know
+        uint8_t address = bytes[2];
+        auto inverter   = get_inverter(address);
 
-        /*
+        if (inverter == nullptr) {
+          bytes.clear();
+          continue;
+        }
+
+        // parse buffer and update sensors
         Variant15Parser parser(bytes, true);
         parser.parse();
 
-        inverters[address].part_number->publish_state(parser.SAP_part_number);
-        inverters[address].serial_number->publish_state(parser.SAP_serial_number);
+        if (inverter->solar_voltage_ != nullptr) {
+          inverter->solar_voltage_->publish_state(parser.Solar_voltage_input_1);
+        }
 
-        inverters[address].solar_voltage->publish_state(parser.Solar_voltage_input_1);
-        inverters[address].solar_current->publish_state(parser.Solar_current_input_1);
-        inverters[address].ac_current->publish_state(parser.AC_current);
-        inverters[address].ac_voltage->publish_state(parser.AC_voltage);
-        inverters[address].ac_power->publish_state(parser.AC_power);
-        inverters[address].ac_frequency->publish_state(parser.AC_frequency);
-        inverters[address].grid_ac_voltage->publish_state(parser.AC_Grid_voltage);
-        inverters[address].grid_ac_frequency->publish_state(parser.AC_Grid_frequency);
-        inverters[address].inverter_runtime_minutes->publish_state(parser.Inverter_runtime_minutes);
-        inverters[address].day_supplied_ac_energy->publish_state(parser.Day_supplied_ac_energy);
-        inverters[address].max_ac_power_today->publish_state(parser.Max_ac_power_today);
-        inverters[address].max_solar_input_power->publish_state(parser.Max_solar_1_input_power);
+        if (inverter->solar_current_ != nullptr) {
+          inverter->solar_current_->publish_state(parser.Solar_current_input_1);
+        }
 
-        inverters[address].inverter_runtime_hours->publish_state(parser.Inverter_runtime_hours);
-        inverters[address].supplied_ac_energy->publish_state(parser.Supplied_ac_energy);
-        */
+        if (inverter->ac_current_ != nullptr) {
+          inverter->ac_current_->publish_state(parser.AC_current);
+        }
+
+        if (inverter->ac_voltage_ != nullptr) {
+          inverter->ac_voltage_->publish_state(parser.AC_voltage);
+        }
+
+        if (inverter->ac_power_ != nullptr) {
+          inverter->ac_power_->publish_state(parser.AC_power);
+        }
+
+        if (inverter->ac_frequency_ != nullptr) {
+          inverter->ac_frequency_->publish_state(parser.AC_frequency);
+        }
+
+        if (inverter->grid_ac_voltage_ != nullptr) {
+          inverter->grid_ac_voltage_->publish_state(parser.AC_Grid_voltage);
+        }
+
+        if (inverter->grid_ac_frequency_ != nullptr) {
+          inverter->grid_ac_frequency_->publish_state(parser.AC_Grid_frequency);
+        }
+
+        if (inverter->inverter_runtime_minutes_ != nullptr) {
+          inverter->inverter_runtime_minutes_->publish_state(parser.Inverter_runtime_minutes);
+        }
+
+        if (inverter->day_supplied_ac_energy_ != nullptr) {
+          inverter->day_supplied_ac_energy_->publish_state(parser.Day_supplied_ac_energy);
+        }
+
+        if (inverter->max_ac_power_today_ != nullptr) {
+          inverter->max_ac_power_today_->publish_state(parser.Max_ac_power_today);
+        }
+
+        if (inverter->max_solar_input_power_ != nullptr) {
+          inverter->max_solar_input_power_->publish_state(parser.Max_solar_1_input_power);
+        }
+
+        if (inverter->inverter_runtime_hours_ != nullptr) {
+          inverter->inverter_runtime_hours_->publish_state(parser.Inverter_runtime_hours);
+        }
+
+        if (inverter->supplied_ac_energy_ != nullptr) {
+          inverter->supplied_ac_energy_->publish_state(parser.Supplied_ac_energy);
+        }
 
         // done
         bytes.clear();
