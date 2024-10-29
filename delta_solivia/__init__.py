@@ -22,8 +22,6 @@ from esphome.const import (
     UNIT_MINUTE,
 )
 
-# maximum number of inverters that we support (pretty randomly chosen)
-CONF_MAX_INVERTERS = 4
 
 CODEOWNERS   = ["@robertklep"]
 DEPENDENCIES = ["uart"]
@@ -57,8 +55,8 @@ CONF_INV_MAX_AC_POWER          = "max_ac_power_today"
 CONF_INV_MAX_SOLAR_INPUT_POWER = "max_solar_input_power"
 
 def _validate_inverters(config):
-    if len(config) < 1 or len(config) > CONF_MAX_INVERTERS:
-        raise cv.Invalid("Number of inverters should be between 1 and %s" % CONF_MAX_INVERTERS)
+    if len(config) < 1:
+        raise cv.Invalid("Need at least one inverter to be configured")
     # ensure all configured inverters have a unique address
     addresses = { inverter.get(CONF_INV_ADDRESS) for inverter in config }
     if len(addresses) != len(config):
@@ -67,7 +65,7 @@ def _validate_inverters(config):
 
 INVERTER_SCHEMA = cv.Schema({
     cv.GenerateID(): cv.declare_id(Inverter),
-    cv.Optional(CONF_INV_ADDRESS, default = 1): cv.int_range(min = 1, max = CONF_MAX_INVERTERS),
+    cv.Required(CONF_INV_ADDRESS): cv.int_range(min = 1),
     cv.Optional(CONF_INV_TOTAL_ENERGY): sensor.sensor_schema(
         unit_of_measurement = UNIT_KILOWATT_HOURS,
         icon                = 'mdi:meter-electric',

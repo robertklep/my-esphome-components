@@ -4,9 +4,7 @@ This component for ESPHome can be used to directly read measurement/statistics d
 
 ## SYNOPSIS
 
-The document "Public Solar Inverter Communication Protocol (Version 1.2)", from Delta Energy Systems (Germany) GmbH, documents the protocol that Delta Solivia inverters use over their RS485 port.
-
-There are dozens of Solivia models, and about 10 different protocol variants.
+The document "Public Solar Inverter Communication Protocol (Version 1.2)", from Delta Energy Systems (Germany) GmbH, documents the protocol that Delta Solivia inverters use over their RS485 port. There are dozens of Solivia models, and about 10 different protocol variants.
 
 This component only supports one variant, supported by the following inverters:
 * SOLIVIA 2.5 EU G3
@@ -30,7 +28,7 @@ The component does not perform any checks to see if it's talking to a supported 
 
 ### MCU
 
-While not tested, the component should work on most ESP32 boards, and probably also ESP8266 boards. I'm using an ESP32-C3 "SuperMini" board.
+The component should work on most ESP32 boards, and probably also ESP8266 boards, although I have only tested with ESP32-C3 "SuperMini" boards.
 
 ### MAX485 RS485-to-TTL module
 
@@ -86,8 +84,7 @@ delta_solivia:
   # Value in milliseconds.
   throttle: 10000
 
-  # Here you can configure multiple inverters (at most 4, although that
-  # maximum is arbitrary).
+  # Here you can configure multiple inverters.
   #
   # Each inverter has a unique address, usually starting with "1" for the
   # first inverter, "2" for the second, etc.
