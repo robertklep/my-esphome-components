@@ -30,7 +30,9 @@ The component does not perform any checks to see if it's talking to a supported 
 
 The component should work on most ESP32 boards, and probably also ESP8266 boards, although I have only tested with ESP32-C3 "SuperMini" boards.
 
-### MAX485 RS485-to-TTL module
+### RS-485 modules
+
+#### MAX485-based RS-485-to-TTL modules
 
 These modules are cheap and easy to get. They require explicit flow control (see below, "ESPHome setup") for the component to be able to write to the RS485 bus.
 
@@ -42,9 +44,19 @@ These modules are cheap and easy to get. They require explicit flow control (see
 | GPIO3 | RO           | RX           |
 | GPIO2 | RE + DE      | Flow control |
 
-### Automatic flow control
+#### Modules with automatic flow control
 
 RS485 boards that have automatic flow control will take care of the correct signalling automatically.
+
+### Connecting to the inverter
+
+The inverter should have one or more ports that accept RJ45 ("Ethernet") connectors. The pinout depends on the inverter model (G3 or G4):
+
+![pinout](assets/pinout.png)
+
+The TX_A and RX_B pins should connect to the A and B pins on the RS-485 module, respectively. The RS-485 GND pin isn't used.
+
+If you don't have the necessary tools to crimp Ethernet cables, or you just want a quick solution, cut off a length of Ethernet cable with connector already attached and connect the TX_A and RX_B wires to the RS-485 module.
 
 ## ESPHome setup
 
