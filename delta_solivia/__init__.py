@@ -114,7 +114,7 @@ INVERTER_SCHEMA = cv.Schema({
     ),
     cv.Optional(CONF_INV_AC_POWER): sensor.sensor_schema(
         unit_of_measurement = UNIT_WATT,
-        icon                = 'mdi:solar_power',
+        icon                = 'mdi:solar-power',
         accuracy_decimals   = 0,
         device_class        = DEVICE_CLASS_POWER,
         state_class         = STATE_CLASS_MEASUREMENT,
@@ -145,14 +145,14 @@ INVERTER_SCHEMA = cv.Schema({
     ),
     cv.Optional(CONF_INV_MAX_AC_POWER): sensor.sensor_schema(
         unit_of_measurement = UNIT_WATT,
-        icon                = 'mdi:solar_power',
+        icon                = 'mdi:solar-power',
         accuracy_decimals   = 0,
         device_class        = DEVICE_CLASS_POWER,
         state_class         = STATE_CLASS_TOTAL_INCREASING
     ),
     cv.Optional(CONF_INV_MAX_SOLAR_INPUT_POWER): sensor.sensor_schema(
         unit_of_measurement = UNIT_WATT,
-        icon                = 'mdi:solar_power',
+        icon                = 'mdi:solar-power',
         accuracy_decimals   = 0,
         device_class        = DEVICE_CLASS_POWER,
         state_class         = STATE_CLASS_TOTAL_INCREASING
