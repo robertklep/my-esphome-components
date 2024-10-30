@@ -27,9 +27,9 @@ CODEOWNERS   = ["@robertklep"]
 DEPENDENCIES = ["uart"]
 AUTO_LOAD    = ["sensor", "text_sensor"]
 
-delta_solivia_ns = cg.esphome_ns.namespace("delta_solivia")
-DeltaSolivia     = delta_solivia_ns.class_("DeltaSoliviaComponent", uart.UARTDevice, cg.PollingComponent)
-Inverter         = delta_solivia_ns.class_("Inverter")
+delta_solivia_ns      = cg.esphome_ns.namespace("delta_solivia")
+DeltaSoliviaComponent = delta_solivia_ns.class_("DeltaSoliviaComponent", uart.UARTDevice, cg.PollingComponent)
+DeltaSoliviaInverter  = delta_solivia_ns.class_("DeltaSoliviaInverter")
 
 # global config
 CONF_INVERTERS = "inverters"
@@ -64,7 +64,7 @@ def _validate_inverters(config):
     return config
 
 INVERTER_SCHEMA = cv.Schema({
-    cv.GenerateID(): cv.declare_id(Inverter),
+    cv.GenerateID(): cv.declare_id(DeltaSoliviaInverter),
     cv.Required(CONF_INV_ADDRESS): cv.int_range(min = 1),
     cv.Optional(CONF_INV_TOTAL_ENERGY): sensor.sensor_schema(
         unit_of_measurement = UNIT_KILOWATT_HOURS,
@@ -159,7 +159,7 @@ INVERTER_SCHEMA = cv.Schema({
 
 CONFIG_SCHEMA = cv.All(
     cv.Schema({
-        cv.GenerateID(): cv.declare_id(DeltaSolivia),
+        cv.GenerateID(): cv.declare_id(DeltaSoliviaComponent),
         cv.Optional(CONF_THROTTLE, default = 10000): cv.int_range(min = 0),
         cv.Required(CONF_INVERTERS):                 cv.All(cv.ensure_list(INVERTER_SCHEMA), _validate_inverters),
     })
@@ -173,7 +173,7 @@ async def to_code(config):
     await uart.register_uart_device(var, config)
     cg.add(var.set_throttle(config[CONF_THROTTLE]))
     for inv_conf in config[CONF_INVERTERS]:
-        inverter = cg.new_Pvariable(inv_conf[CONF_ID], Inverter(inv_conf[CONF_INV_ADDRESS]))
+        inverter = cg.new_Pvariable(inv_conf[CONF_ID], DeltaSoliviaInverter(inv_conf[CONF_INV_ADDRESS]))
 
         if CONF_INV_TOTAL_ENERGY in inv_conf:
             sens = await sensor.new_sensor(inv_conf[CONF_INV_TOTAL_ENERGY])
