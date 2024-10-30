@@ -25,16 +25,14 @@ class DeltaSoliviaComponent: public PollingComponent, public UARTDevice {
   uint32_t throttle_ms = 10000;
   std::map<uint8_t, DeltaSoliviaInverter*> inverters;
 
-  unsigned int calc_crc(unsigned char *sop, unsigned char *eop) {
-    unsigned int crc;
-    unsigned char *char_ptr;
+  // Packet CRC calculation
+  uint16_t calc_crc(uint8_t *sop, uint8_t *eop) {
+    uint8_t *char_ptr = sop;
+    uint16_t crc = 0x0000;
 
-    char_ptr = sop;
-    crc = 0x0000;
     do {
-      unsigned char bit_count;
+      uint8_t bit_count = 0;
       crc ^= ((*char_ptr) & 0x00ff);
-      bit_count = 0;
       do {
         if (crc & 0x0001) {
           crc >>= 1;
@@ -104,21 +102,23 @@ class DeltaSoliviaComponent: public PollingComponent, public UARTDevice {
           bytes[5]
         );
 
-        // validate CRC (page 8/9)
-        /*
-        const uint16_t packet_crc = *reinterpret_cast<const uint16_t*>(&bytes[155]);
-        unsigned int calculated_crc = calc_crc(&bytes[1], &bytes[154]);
-        ESP_LOGI(LOG_TAG, "PACKET - packet CRC = 0x%04X (0x%02X%02X), calculated CRC = 0x%X, idx = %u",
-            packet_crc,
-            bytes[155],
-            bytes[156],
-            calculated_crc,
-            6 + bytes[3]
-        );
+        // validate End-of-Protocol byte
+        const uint16_t end_of_data     = 5 + bytes[3] - 1;
+        const uint8_t  end_of_protocol = bytes[end_of_data + 2];
+        if (end_of_protocol != ETX) {
+          ESP_LOGE(LOG_TAG, "PACKET - invalid end-of-protocol byte (was 0x%02x, should be 0x%02x)", end_of_protocol, ETX);
+          bytes.clear();
+          continue;
+        }
 
-        bytes.clear();
-        continue;
-        */
+        // validate CRC (page 8/9)
+        const uint16_t packet_crc     = *reinterpret_cast<const uint16_t*>(&bytes[end_of_data]);
+        uint16_t       calculated_crc = calc_crc(&bytes[1], &bytes[end_of_data - 1]);
+        if (packet_crc != calculated_crc) {
+          ESP_LOGE(LOG_TAG, "PACKET - CRC mismatch (was 0x%04X, should be 0x%04X)", calculated_crc, packet_crc);
+          bytes.clear();
+          continue;
+        }
 
         // update inverter (if it's known and should be updated)
         auto inverter = get_inverter(bytes[2]);
