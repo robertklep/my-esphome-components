@@ -8,21 +8,11 @@
 namespace esphome {
 namespace delta_solivia {
 
-// logging tag
-#define LOG_TAG "DeltaSolivia"
-
-// protocol characters (page 7)
-#define ENQ 0x05
-#define ACK 0x06
-#define NAK 0x15
-#define STX 0x02
-#define ETX 0x03
-
 using uart::UARTDevice;
 using uart::UARTComponent;
 
 class DeltaSoliviaComponent: public PollingComponent, public UARTDevice {
-  uint32_t throttle_ms = 10000;
+  uint32_t throttle_ms;
   std::map<uint8_t, DeltaSoliviaInverter*> inverters;
 
   // Packet CRC calculation
@@ -46,6 +36,8 @@ class DeltaSoliviaComponent: public PollingComponent, public UARTDevice {
   }
 
   public:
+    // ctor
+    DeltaSoliviaComponent() : throttle_ms(10000) {}
 
     // set throttle interval
     void set_throttle(uint32_t ms) {
@@ -87,7 +79,6 @@ class DeltaSoliviaComponent: public PollingComponent, public UARTDevice {
         // read full packet
         unsigned int required_size = 6 + bytes[3] + 3;
         if (bytes.size() != required_size) {
-          //ESP_LOGI(LOG_TAG, "BYTES READ = %u NEED %u", bytes.size(), required_size);
           continue;
         }
 
