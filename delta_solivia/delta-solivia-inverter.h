@@ -1,9 +1,10 @@
 #pragma once
 
 #include "esphome.h"
-#include "constants.h"
 #include "esphome/components/sensor/sensor.h"
 #include "esphome/components/text_sensor/text_sensor.h"
+#include "constants.h"
+#include "delta-solivia-crc.h"
 #include "variant-15-parser.h"
 
 namespace esphome {
@@ -14,8 +15,10 @@ using text_sensor::TextSensor;
 
 class DeltaSoliviaInverter {
   protected:
-    uint8_t address_;
-    uint32_t last_updated_millis;
+    uint8_t  address_;
+    uint32_t last_request;
+    uint32_t last_update;
+    uint32_t update_interval;
 
   public:
     Sensor* solar_voltage_ { nullptr };
@@ -33,7 +36,7 @@ class DeltaSoliviaInverter {
     Sensor* max_ac_power_today_ { nullptr };
     Sensor* max_solar_input_power_ { nullptr };
 
-    explicit DeltaSoliviaInverter(uint8_t address) : address_(address), last_updated_millis(0) {}
+    explicit DeltaSoliviaInverter(uint8_t address) : address_(address), last_request(0), last_update(0), update_interval(10000) {}
 
     uint8_t get_address() { return address_; }
     void set_solar_voltage(Sensor* solar_voltage) { solar_voltage_ = solar_voltage; }
@@ -51,17 +54,55 @@ class DeltaSoliviaInverter {
     void set_max_ac_power_today(Sensor* max_ac_power_today) { max_ac_power_today_ = max_ac_power_today; }
     void set_max_solar_input_power(Sensor* max_solar_input_power) { max_solar_input_power_ = max_solar_input_power; }
 
-    bool last_update_older_than(uint32_t throttle_ms) {
-      uint32_t current_millis = millis();
+    void set_update_interval(uint32_t interval) {
+      update_interval = interval;
+    }
 
-      if (current_millis - last_updated_millis < throttle_ms) {
+    bool should_request_update() {
+      uint32_t now = millis();
+
+      if (now - last_request < update_interval) {
         return false;
       }
-      last_updated_millis = current_millis;
+      last_request = now;
       return true;
     }
 
-    void update(const std::vector<uint8_t>& bytes) {
+    template <typename F>
+    void request_update(const F& callback) {
+      ESP_LOGD(LOG_TAG, "INVERTER%u - requesting update", address_);
+
+      // Enquire packet (page 7/8)
+      const uint8_t bytes[] = {
+        STX,      // start of protocol
+        ENQ,      // enquire
+        address_, // for inverter with address
+        0x02,     // number of data bytes, including commands
+        0x60,     // command
+        0x01,     // subcommand
+        0x00,     // CRC low
+        0x00,     // CRC high
+        ETX       // end of protocol
+      };
+
+      // calculate CRC
+      *((uint16_t*) &bytes[6]) = delta_solivia_crc((uint8_t *) bytes + 2, (uint8_t *) bytes + 5);
+
+      // call callback with data, caller will handle writing to UART
+      callback(&bytes[0], sizeof(bytes));
+    }
+
+    bool should_update_sensors() {
+      uint32_t now = millis();
+
+      if (now - last_update < update_interval) {
+        return false;
+      }
+      last_update = now;
+      return true;
+    }
+
+    void update_sensors(const std::vector<uint8_t>& bytes) {
       ESP_LOGD(LOG_TAG, "INVERTER#%u - updating sensors", address_);
 
       // parse buffer and update sensors

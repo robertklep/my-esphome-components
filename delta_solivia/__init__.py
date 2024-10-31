@@ -1,9 +1,12 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
+from esphome import pins
+from esphome.cpp_helpers import gpio_pin_expression
 from esphome.components import uart, sensor
 from esphome.const import (
     CONF_ID,
     CONF_UART_ID,
+    CONF_FLOW_CONTROL_PIN,
     DEVICE_CLASS_CURRENT,
     DEVICE_CLASS_ENERGY,
     DEVICE_CLASS_POWER,
@@ -22,7 +25,6 @@ from esphome.const import (
     UNIT_MINUTE,
 )
 
-
 CODEOWNERS   = ["@robertklep"]
 DEPENDENCIES = ["uart"]
 AUTO_LOAD    = ["sensor", "text_sensor"]
@@ -33,10 +35,10 @@ DeltaSoliviaInverter  = delta_solivia_ns.class_("DeltaSoliviaInverter")
 
 # global config
 CONF_INVERTERS = "inverters"
-CONF_THROTTLE  = "throttle"
 
 # per-inverter config
-CONF_INV_ADDRESS = "address"
+CONF_INV_ADDRESS         = "address"
+CONF_INV_UPDATE_INVERVAL = "update_interval"
 
 # per-inverter measurements
 CONF_INV_TOTAL_ENERGY          = "total_energy"
@@ -66,6 +68,7 @@ def _validate_inverters(config):
 INVERTER_SCHEMA = cv.Schema({
     cv.GenerateID(): cv.declare_id(DeltaSoliviaInverter),
     cv.Required(CONF_INV_ADDRESS): cv.int_range(min = 1),
+    cv.Optional(CONF_INV_UPDATE_INVERVAL, default = 10000): cv.int_range(min = 0),
     cv.Optional(CONF_INV_TOTAL_ENERGY): sensor.sensor_schema(
         unit_of_measurement = UNIT_KILOWATT_HOURS,
         icon                = 'mdi:meter-electric',
@@ -160,76 +163,82 @@ INVERTER_SCHEMA = cv.Schema({
 CONFIG_SCHEMA = cv.All(
     cv.Schema({
         cv.GenerateID(): cv.declare_id(DeltaSoliviaComponent),
-        cv.Optional(CONF_THROTTLE, default = 10000): cv.int_range(min = 0),
-        cv.Required(CONF_INVERTERS):                 cv.All(cv.ensure_list(INVERTER_SCHEMA), _validate_inverters),
+        cv.Optional(CONF_FLOW_CONTROL_PIN): pins.gpio_output_pin_schema,
+        cv.Required(CONF_INVERTERS): cv.All(cv.ensure_list(INVERTER_SCHEMA), _validate_inverters),
     })
     .extend(cv.polling_component_schema("600ms"))
     .extend(uart.UART_DEVICE_SCHEMA)
 )
 
 async def to_code(config):
-    var = cg.new_Pvariable(config[CONF_ID])
-    await cg.register_component(var, config)
-    await uart.register_uart_device(var, config)
-    cg.add(var.set_throttle(config[CONF_THROTTLE]))
-    for inv_conf in config[CONF_INVERTERS]:
-        inverter = cg.new_Pvariable(inv_conf[CONF_ID], DeltaSoliviaInverter(inv_conf[CONF_INV_ADDRESS]))
+    component = cg.new_Pvariable(config[CONF_ID])
+    await cg.register_component(component , config)
+    await uart.register_uart_device(component , config)
 
-        if CONF_INV_TOTAL_ENERGY in inv_conf:
-            sens = await sensor.new_sensor(inv_conf[CONF_INV_TOTAL_ENERGY])
+    if CONF_FLOW_CONTROL_PIN in config:
+        pin = await gpio_pin_expression(config[CONF_FLOW_CONTROL_PIN])
+        cg.add(component.set_flow_control_pin(pin))
+
+    for inverter_config in config[CONF_INVERTERS]:
+        inverter = cg.new_Pvariable(inverter_config[CONF_ID], DeltaSoliviaInverter(inverter_config[CONF_INV_ADDRESS]))
+
+        cg.add(inverter.set_update_interval(inverter_config[CONF_INV_UPDATE_INVERVAL]))
+
+        if CONF_INV_TOTAL_ENERGY in inverter_config:
+            sens = await sensor.new_sensor(inverter_config[CONF_INV_TOTAL_ENERGY])
             cg.add(inverter.set_supplied_ac_energy(sens))
 
-        if CONF_INV_TODAY_ENERGY in inv_conf:
-            sens = await sensor.new_sensor(inv_conf[CONF_INV_TODAY_ENERGY])
+        if CONF_INV_TODAY_ENERGY in inverter_config:
+            sens = await sensor.new_sensor(inverter_config[CONF_INV_TODAY_ENERGY])
             cg.add(inverter.set_day_supplied_ac_energy(sens))
 
-        if CONF_INV_DC_VOLTAGE in inv_conf:
-            sens = await sensor.new_sensor(inv_conf[CONF_INV_DC_VOLTAGE])
+        if CONF_INV_DC_VOLTAGE in inverter_config:
+            sens = await sensor.new_sensor(inverter_config[CONF_INV_DC_VOLTAGE])
             cg.add(inverter.set_solar_voltage(sens))
 
-        if CONF_INV_DC_CURRENT in inv_conf:
-            sens = await sensor.new_sensor(inv_conf[CONF_INV_DC_CURRENT])
+        if CONF_INV_DC_CURRENT in inverter_config:
+            sens = await sensor.new_sensor(inverter_config[CONF_INV_DC_CURRENT])
             cg.add(inverter.set_solar_current(sens))
 
-        if CONF_INV_AC_VOLTAGE in inv_conf:
-            sens = await sensor.new_sensor(inv_conf[CONF_INV_AC_VOLTAGE])
+        if CONF_INV_AC_VOLTAGE in inverter_config:
+            sens = await sensor.new_sensor(inverter_config[CONF_INV_AC_VOLTAGE])
             cg.add(inverter.set_ac_voltage(sens))
 
-        if CONF_INV_AC_CURRENT in inv_conf:
-            sens = await sensor.new_sensor(inv_conf[CONF_INV_AC_CURRENT])
+        if CONF_INV_AC_CURRENT in inverter_config:
+            sens = await sensor.new_sensor(inverter_config[CONF_INV_AC_CURRENT])
             cg.add(inverter.set_ac_current(sens))
 
-        if CONF_INV_AC_FREQ in inv_conf:
-            sens = await sensor.new_sensor(inv_conf[CONF_INV_AC_FREQ])
+        if CONF_INV_AC_FREQ in inverter_config:
+            sens = await sensor.new_sensor(inverter_config[CONF_INV_AC_FREQ])
             cg.add(inverter.set_ac_frequency(sens))
 
-        if CONF_INV_AC_POWER in inv_conf:
-            sens = await sensor.new_sensor(inv_conf[CONF_INV_AC_POWER])
+        if CONF_INV_AC_POWER in inverter_config:
+            sens = await sensor.new_sensor(inverter_config[CONF_INV_AC_POWER])
             cg.add(inverter.set_ac_power(sens))
 
-        if CONF_INV_GRID_VOLTAGE in inv_conf:
-            sens = await sensor.new_sensor(inv_conf[CONF_INV_GRID_VOLTAGE])
+        if CONF_INV_GRID_VOLTAGE in inverter_config:
+            sens = await sensor.new_sensor(inverter_config[CONF_INV_GRID_VOLTAGE])
             cg.add(inverter.set_grid_ac_voltage(sens))
 
-        if CONF_INV_GRID_FREQ in inv_conf:
-            sens = await sensor.new_sensor(inv_conf[CONF_INV_GRID_FREQ])
+        if CONF_INV_GRID_FREQ in inverter_config:
+            sens = await sensor.new_sensor(inverter_config[CONF_INV_GRID_FREQ])
             cg.add(inverter.set_grid_ac_frequency(sens))
 
-        if CONF_INV_RUNTIME_HOURS in inv_conf:
-            sens = await sensor.new_sensor(inv_conf[CONF_INV_RUNTIME_HOURS])
+        if CONF_INV_RUNTIME_HOURS in inverter_config:
+            sens = await sensor.new_sensor(inverter_config[CONF_INV_RUNTIME_HOURS])
             cg.add(inverter.set_inverter_runtime_hours(sens))
 
-        if CONF_INV_RUNTIME_MINUTES in inv_conf:
-            sens = await sensor.new_sensor(inv_conf[CONF_INV_RUNTIME_MINUTES])
+        if CONF_INV_RUNTIME_MINUTES in inverter_config:
+            sens = await sensor.new_sensor(inverter_config[CONF_INV_RUNTIME_MINUTES])
             cg.add(inverter.set_inverter_runtime_minutes(sens))
 
-        if CONF_INV_MAX_AC_POWER in inv_conf:
-            sens = await sensor.new_sensor(inv_conf[CONF_INV_MAX_AC_POWER])
+        if CONF_INV_MAX_AC_POWER in inverter_config:
+            sens = await sensor.new_sensor(inverter_config[CONF_INV_MAX_AC_POWER])
             cg.add(inverter.set_max_ac_power_today(sens))
 
-        if CONF_INV_MAX_SOLAR_INPUT_POWER in inv_conf:
-            sens = await sensor.new_sensor(inv_conf[CONF_INV_MAX_SOLAR_INPUT_POWER])
+        if CONF_INV_MAX_SOLAR_INPUT_POWER in inverter_config:
+            sens = await sensor.new_sensor(inverter_config[CONF_INV_MAX_SOLAR_INPUT_POWER])
             cg.add(inverter.set_max_solar_input_power(sens))
 
-        cg.add(var.add_inverter(inverter))
+        cg.add(component .add_inverter(inverter))
 

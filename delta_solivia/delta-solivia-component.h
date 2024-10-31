@@ -4,6 +4,7 @@
 #include "esphome.h"
 #include "esphome/components/uart/uart.h"
 #include "delta-solivia-inverter.h"
+#include "delta-solivia-crc.h"
 
 namespace esphome {
 namespace delta_solivia {
@@ -12,37 +13,14 @@ using uart::UARTDevice;
 using uart::UARTComponent;
 
 class DeltaSoliviaComponent: public PollingComponent, public UARTDevice {
-  uint32_t throttle_ms;
   std::map<uint8_t, DeltaSoliviaInverter*> inverters;
-
-  // Packet CRC calculation
-  uint16_t calc_crc(uint8_t *sop, uint8_t *eop) {
-    uint8_t *char_ptr = sop;
-    uint16_t crc = 0x0000;
-
-    do {
-      uint8_t bit_count = 0;
-      crc ^= ((*char_ptr) & 0x00ff);
-      do {
-        if (crc & 0x0001) {
-          crc >>= 1;
-          crc ^= 0xA001;
-        } else {
-          crc >>= 1;
-        }
-      } while ( bit_count++ < 7 );
-    } while ( char_ptr++ < eop );
-    return crc;
-  }
+  GPIOPin *flow_control_pin_{nullptr};
 
   public:
-    // ctor
-    DeltaSoliviaComponent() : throttle_ms(10000) {}
-
-    // set throttle interval
-    void set_throttle(uint32_t ms) {
-      ESP_LOGD(LOG_TAG, "CONFIG - setting throttle interval to %u ms", ms);
-      throttle_ms = ms;
+    void setup() {
+      if (flow_control_pin_ != nullptr) {
+        flow_control_pin_->setup();
+      }
     }
 
     // add an inverter
@@ -56,10 +34,36 @@ class DeltaSoliviaComponent: public PollingComponent, public UARTDevice {
       return inverters.count(address) == 1 ? inverters[address] : nullptr;
     }
 
+    void set_flow_control_pin(GPIOPin *flow_control_pin) {
+      flow_control_pin_ = flow_control_pin;
+    }
+
     // buffer to store serial data
     std::vector<uint8_t> bytes;
 
     void update() {
+
+      // check if we should request an update for any inverters
+      for (const auto& item : inverters) {
+        auto inverter = item.second;
+
+        if (inverter->should_request_update()) {
+          inverter->request_update(
+            [this](const uint8_t* bytes, unsigned len) -> void {
+              if (this->flow_control_pin_ != nullptr) {
+                this->flow_control_pin_->digital_write(true);
+              }
+              this->write_array(bytes, len);
+              this->flush();
+              if (this->flow_control_pin_ != nullptr) {
+                this->flow_control_pin_->digital_write(false);
+              }
+            }
+          );
+        }
+      }
+
+      // read data off UART
       while (available() > 0) {
         // add new bytes to buffer
         bytes.push_back(read());
@@ -104,7 +108,7 @@ class DeltaSoliviaComponent: public PollingComponent, public UARTDevice {
 
         // validate CRC (page 8/9)
         const uint16_t packet_crc     = *reinterpret_cast<const uint16_t*>(&bytes[end_of_data]);
-        uint16_t       calculated_crc = calc_crc(&bytes[1], &bytes[end_of_data - 1]);
+        uint16_t       calculated_crc = delta_solivia_crc(&bytes[1], &bytes[end_of_data - 1]);
         if (packet_crc != calculated_crc) {
           ESP_LOGE(LOG_TAG, "PACKET - CRC mismatch (was 0x%04X, should be 0x%04X)", calculated_crc, packet_crc);
           bytes.clear();
@@ -113,14 +117,14 @@ class DeltaSoliviaComponent: public PollingComponent, public UARTDevice {
 
         // update inverter (if it's known and should be updated)
         auto inverter = get_inverter(bytes[2]);
-
-        if (inverter != nullptr && inverter->last_update_older_than(throttle_ms)) {
-          inverter->update(bytes);
+        if (inverter->should_update_sensors()) {
+          inverter->update_sensors(bytes);
         }
 
         // done
         bytes.clear();
       }
+
     }
 };
 

@@ -76,25 +76,14 @@ uart:
   parity: NONE
   stop_bits: 1
 
-# This output is required for manual flow control, even if you don't
-# write to the bus (it causes the flow control pin to be pulled down
-# by default, which is required to be able to read from the RS485 module).
-output:
-  - platform: gpio
-    pin: GPIO2
-    id: flow_control
-
 # component setup
 delta_solivia:
   # The UART configured above
   uart_id: solivia_uart
 
-  # Some inverters send measurement data once every few seconds,
-  # especially if you have a gateway attached. This setting throttles
-  # down the amount of updates sent to Home Assistant.
-  #
-  # Value in milliseconds.
-  throttle: 10000
+  # Optional flow control pin, only configure this if your board doesn't have automatic flow control.
+  # (before writing to the bus, the pin will be pulled up to assume control over the bus)
+  flow_control_pin: GPIOX
 
   # Here you can configure multiple inverters.
   #
@@ -109,6 +98,7 @@ delta_solivia:
   # interested in a specific sensor, just leave it out.
   inverters:
     - address: 1
+      update_interval: 10000 # see below, default is 10000ms (10 seconds)
       ac_power:
         name: 'Inverter#1 Current Power'
       total_energy:
@@ -166,3 +156,10 @@ delta_solivia:
         name: 'Inverter#2 AC Power Today'
       max_solar_input_power:
         name: 'Inverter#2 Solar Input Power'
+```
+
+#### `update_interval`
+
+The `update_interval` configuration variable serves two purposes, depending on whether you have a Solivia Gateway or not:
+* If you have a gateway, the gateway will request inverters to update their statistics quite often, sometimes once per second. Since this may cause excessive writing to the Home Assistant database, the update interval will throttle the amount of sensors updates to, by default, at most once per 10000ms (or 10 seconds).
+* If you don't have a gateway, the component will use the interval to determine how often to ask all inverters to update their statistics.
