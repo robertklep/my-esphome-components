@@ -98,7 +98,7 @@ delta_solivia:
   # interested in a specific sensor, just leave it out.
   inverters:
     - address: 1
-      update_interval: 10000 # see below, default is 10000ms (10 seconds)
+      update_interval: 10s # see below
       ac_power:
         name: 'Inverter#1 Current Power'
       total_energy:
@@ -161,5 +161,5 @@ delta_solivia:
 #### `update_interval`
 
 The `update_interval` configuration variable serves two purposes, depending on whether you have a Solivia Gateway or not:
-* If you have a gateway, the gateway will request inverters to update their statistics quite often, sometimes once per second. Since this may cause excessive writing to the Home Assistant database, the update interval will throttle the amount of sensors updates to, by default, at most once per 10000ms (or 10 seconds).
-* If you don't have a gateway, the component will use the interval to determine how often to ask all inverters to update their statistics.
+* If you have a gateway, the gateway will request inverters to update their statistics quite often, sometimes once per second. Since this may cause excessive writing to the Home Assistant database, the update interval will throttle the amount of sensors updates to, by default, at most once per 10 seconds.
+* If you don't have a gateway, the component will use the interval to determine how often to ask an inverters to update its statistics.
