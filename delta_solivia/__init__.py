@@ -16,6 +16,7 @@ from esphome.const import (
     STATE_CLASS_MEASUREMENT,
     STATE_CLASS_TOTAL_INCREASING,
     UNIT_WATT,
+    UNIT_WATT_HOURS,
     UNIT_KILOWATT,
     UNIT_KILOWATT_HOURS,
     UNIT_VOLT,
@@ -77,7 +78,7 @@ INVERTER_SCHEMA = cv.Schema({
         state_class         = STATE_CLASS_TOTAL_INCREASING
     ),
     cv.Optional(CONF_INV_TODAY_ENERGY): sensor.sensor_schema(
-        unit_of_measurement = UNIT_KILOWATT_HOURS,
+        unit_of_measurement = UNIT_WATT_HOURS,
         icon                = 'mdi:meter-electric',
         accuracy_decimals   = 0,
         device_class        = DEVICE_CLASS_ENERGY,
@@ -149,14 +150,14 @@ INVERTER_SCHEMA = cv.Schema({
         icon                = 'mdi:solar-power',
         accuracy_decimals   = 0,
         device_class        = DEVICE_CLASS_POWER,
-        state_class         = STATE_CLASS_TOTAL_INCREASING
+        state_class         = STATE_CLASS_MEASUREMENT
     ),
     cv.Optional(CONF_INV_MAX_SOLAR_INPUT_POWER): sensor.sensor_schema(
         unit_of_measurement = UNIT_WATT,
         icon                = 'mdi:solar-power',
         accuracy_decimals   = 0,
         device_class        = DEVICE_CLASS_POWER,
-        state_class         = STATE_CLASS_TOTAL_INCREASING
+        state_class         = STATE_CLASS_MEASUREMENT
     ),
 })
 
