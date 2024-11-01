@@ -68,7 +68,7 @@ def _validate_inverters(config):
 INVERTER_SCHEMA = cv.Schema({
     cv.GenerateID(): cv.declare_id(DeltaSoliviaInverter),
     cv.Required(CONF_INV_ADDRESS): cv.int_range(min = 1),
-    cv.Optional(CONF_INV_UPDATE_INVERVAL, default = 10000): cv.int_range(min = 0),
+    cv.Optional(CONF_INV_UPDATE_INVERVAL): cv.update_interval,
     cv.Optional(CONF_INV_TOTAL_ENERGY): sensor.sensor_schema(
         unit_of_measurement = UNIT_KILOWATT_HOURS,
         icon                = 'mdi:meter-electric',
@@ -166,7 +166,7 @@ CONFIG_SCHEMA = cv.All(
         cv.Optional(CONF_FLOW_CONTROL_PIN): pins.gpio_output_pin_schema,
         cv.Required(CONF_INVERTERS): cv.All(cv.ensure_list(INVERTER_SCHEMA), _validate_inverters),
     })
-    .extend(cv.polling_component_schema("600ms"))
+    .extend(cv.polling_component_schema("1s"))
     .extend(uart.UART_DEVICE_SCHEMA)
 )
 

@@ -1,6 +1,7 @@
 // Based on Public Solar Inverter Communication Protocol (Version 1.2)
 #pragma once
 
+#include <map>
 #include "esphome.h"
 #include "esphome/components/uart/uart.h"
 #include "delta-solivia-inverter.h"
@@ -12,14 +13,17 @@ namespace delta_solivia {
 using uart::UARTDevice;
 using uart::UARTComponent;
 
+typedef std::map<uint8_t, DeltaSoliviaInverter*> InverterMap;
+
 class DeltaSoliviaComponent: public PollingComponent, public UARTDevice {
-  std::map<uint8_t, DeltaSoliviaInverter*> inverters;
+  InverterMap inverters;
   GPIOPin *flow_control_pin_{nullptr};
 
   public:
     void setup() {
       if (flow_control_pin_ != nullptr) {
         flow_control_pin_->setup();
+        flow_control_pin_->digital_write(false);
       }
     }
 
@@ -44,24 +48,7 @@ class DeltaSoliviaComponent: public PollingComponent, public UARTDevice {
     void update() {
 
       // check if we should request an update for any inverters
-      for (const auto& item : inverters) {
-        auto inverter = item.second;
-
-        if (inverter->should_request_update()) {
-          inverter->request_update(
-            [this](const uint8_t* bytes, unsigned len) -> void {
-              if (this->flow_control_pin_ != nullptr) {
-                this->flow_control_pin_->digital_write(true);
-              }
-              this->write_array(bytes, len);
-              this->flush();
-              if (this->flow_control_pin_ != nullptr) {
-                this->flow_control_pin_->digital_write(false);
-              }
-            }
-          );
-        }
-      }
+      check_next_update_request();
 
       // read data off UART
       while (available() > 0) {
@@ -125,6 +112,31 @@ class DeltaSoliviaComponent: public PollingComponent, public UARTDevice {
         bytes.clear();
       }
 
+    }
+
+    void check_next_update_request() {
+      static InverterMap::const_iterator it = inverters.begin();
+      auto inverter = it->second;
+
+      // request update for the next inverter
+      if (inverter->should_request_update()) {
+        inverter->request_update(
+          [this](const uint8_t* bytes, unsigned len) -> void {
+            if (this->flow_control_pin_ != nullptr) {
+              this->flow_control_pin_->digital_write(true);
+            }
+            this->write_array(bytes, len);
+            this->flush();
+            if (this->flow_control_pin_ != nullptr) {
+              this->flow_control_pin_->digital_write(false);
+            }
+          }
+        );
+      }
+      // wrap around when we reached the end
+      if (++it == inverters.end()) {
+        it = inverters.begin();
+      }
     }
 };
 

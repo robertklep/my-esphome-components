@@ -55,6 +55,7 @@ class DeltaSoliviaInverter {
     void set_max_solar_input_power(Sensor* max_solar_input_power) { max_solar_input_power_ = max_solar_input_power; }
 
     void set_update_interval(uint32_t interval) {
+      ESP_LOGD(LOG_TAG, "SETTING UPDATE INTERVAL to %u", interval);
       update_interval = interval;
     }
 
@@ -64,7 +65,6 @@ class DeltaSoliviaInverter {
       if (now - last_request < update_interval) {
         return false;
       }
-      last_request = now;
       return true;
     }
 
@@ -86,10 +86,13 @@ class DeltaSoliviaInverter {
       };
 
       // calculate CRC
-      *((uint16_t*) &bytes[6]) = delta_solivia_crc((uint8_t *) bytes + 2, (uint8_t *) bytes + 5);
+      *((uint16_t*) &bytes[6]) = delta_solivia_crc((uint8_t *) bytes + 1, (uint8_t *) bytes + 5);
 
       // call callback with data, caller will handle writing to UART
       callback(&bytes[0], sizeof(bytes));
+
+      // update timestamp
+      last_request = millis();
     }
 
     bool should_update_sensors() {
@@ -98,7 +101,6 @@ class DeltaSoliviaInverter {
       if (now - last_update < update_interval) {
         return false;
       }
-      last_update = now;
       return true;
     }
 
@@ -164,6 +166,9 @@ class DeltaSoliviaInverter {
       if (supplied_ac_energy_ != nullptr) {
         supplied_ac_energy_->publish_state(parser.Supplied_ac_energy);
       }
+
+      // update timestamp
+      last_update = millis();
     }
 };
 
