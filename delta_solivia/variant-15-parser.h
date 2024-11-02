@@ -1,7 +1,6 @@
 #pragma once
 
 #include <string>
-#include <vector>
 #include <cstdint>
 
 // Utility functions for byte extraction and scaling
@@ -73,7 +72,7 @@ public:
   uint8_t AC_hardware_failure;
 
   // ctor
-  Variant15Parser (const std::vector<uint8_t>& data, bool skipHeader = false) : data(data), pos(skipHeader ? 6 : 0) {}
+  Variant15Parser (const uint8_t* data, bool skipHeader = false) : data(data), pos(skipHeader ? 6 : 0) {}
 
   void parse() {
     parseSAPInfo();
@@ -87,7 +86,7 @@ public:
   }
 
 private:
-  std::vector<uint8_t> data;
+  const uint8_t* data;
   size_t pos;
 
   void parseSAPInfo() {
@@ -203,7 +202,7 @@ private:
   }
 
   std::string parseString(int length) {
-    std::string result(data.begin() + pos, data.begin() + pos + length);
+    std::string result(data+ pos, data + pos + length);
     pos += length;
     return result;
   }

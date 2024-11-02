@@ -1,3 +1,4 @@
+import logging
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome import pins
@@ -6,6 +7,7 @@ from esphome.components import uart, sensor
 from esphome.const import (
     CONF_ID,
     CONF_UART_ID,
+    CONF_UPDATE_INTERVAL,
     CONF_FLOW_CONTROL_PIN,
     DEVICE_CLASS_CURRENT,
     DEVICE_CLASS_ENERGY,
@@ -26,6 +28,8 @@ from esphome.const import (
     UNIT_MINUTE,
 )
 
+LOGGER = logging.getLogger(__name__)
+
 CODEOWNERS   = ["@robertklep"]
 DEPENDENCIES = ["uart"]
 AUTO_LOAD    = ["sensor", "text_sensor"]
@@ -36,6 +40,7 @@ DeltaSoliviaInverter  = delta_solivia_ns.class_("DeltaSoliviaInverter")
 
 # global config
 CONF_INVERTERS = "inverters"
+CONF_HAS_GATEWAY = "has_gateway"
 
 # per-inverter config
 CONF_INV_ADDRESS         = "address"
@@ -165,9 +170,10 @@ CONFIG_SCHEMA = cv.All(
     cv.Schema({
         cv.GenerateID(): cv.declare_id(DeltaSoliviaComponent),
         cv.Optional(CONF_FLOW_CONTROL_PIN): pins.gpio_output_pin_schema,
+        cv.Optional(CONF_HAS_GATEWAY, default = False): cv.boolean,
         cv.Required(CONF_INVERTERS): cv.All(cv.ensure_list(INVERTER_SCHEMA), _validate_inverters),
     })
-    .extend(cv.polling_component_schema("1s"))
+    .extend(cv.polling_component_schema("5s"))
     .extend(uart.UART_DEVICE_SCHEMA)
 )
 
@@ -179,6 +185,18 @@ async def to_code(config):
     if CONF_FLOW_CONTROL_PIN in config:
         pin = await gpio_pin_expression(config[CONF_FLOW_CONTROL_PIN])
         cg.add(component.set_flow_control_pin(pin))
+
+    # update interval for component should be different depending on
+    # whether there's a gateway present or not (the gateway will request
+    # updates often, and the polling interval needs to be a lot shorter)
+    has_gateway     = config[CONF_HAS_GATEWAY]
+    update_interval = config[CONF_UPDATE_INTERVAL].total_milliseconds
+    if not has_gateway and update_interval < 1000:
+        LOGGER.warning("— [Solivia] Component update interval for non-gateway operation shouldn't be lower than 1000ms (is now set to %ums)", update_interval)
+    elif has_gateway and update_interval != 500:
+        LOGGER.warning("— [Solivia] Fixing component update interval to 500ms")
+        cg.add(component.set_update_interval(500))
+    cg.add(component.set_has_gateway(has_gateway))
 
     for inverter_config in config[CONF_INVERTERS]:
         inverter = cg.new_Pvariable(inverter_config[CONF_ID], DeltaSoliviaInverter(inverter_config[CONF_INV_ADDRESS]))

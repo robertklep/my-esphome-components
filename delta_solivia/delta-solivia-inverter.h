@@ -16,11 +16,12 @@ using text_sensor::TextSensor;
 class DeltaSoliviaInverter {
   protected:
     uint8_t  address_;
-    uint32_t last_request;
     uint32_t last_update;
     uint32_t update_interval;
 
   public:
+    TextSensor* part_number_ { nullptr };
+    TextSensor* serial_number_ { nullptr };
     Sensor* solar_voltage_ { nullptr };
     Sensor* solar_current_ { nullptr };
     Sensor* ac_current_ { nullptr };
@@ -36,7 +37,7 @@ class DeltaSoliviaInverter {
     Sensor* max_ac_power_today_ { nullptr };
     Sensor* max_solar_input_power_ { nullptr };
 
-    explicit DeltaSoliviaInverter(uint8_t address) : address_(address), last_request(0), last_update(0), update_interval(10000) {}
+    explicit DeltaSoliviaInverter(uint8_t address) : address_(address), last_update(0), update_interval(10000) {}
 
     uint8_t get_address() { return address_; }
     void set_solar_voltage(Sensor* solar_voltage) { solar_voltage_ = solar_voltage; }
@@ -55,17 +56,7 @@ class DeltaSoliviaInverter {
     void set_max_solar_input_power(Sensor* max_solar_input_power) { max_solar_input_power_ = max_solar_input_power; }
 
     void set_update_interval(uint32_t interval) {
-      ESP_LOGD(LOG_TAG, "SETTING UPDATE INTERVAL to %u", interval);
       update_interval = interval;
-    }
-
-    bool should_request_update() {
-      uint32_t now = millis();
-
-      if (now - last_request < update_interval) {
-        return false;
-      }
-      return true;
     }
 
     template <typename F>
@@ -90,9 +81,6 @@ class DeltaSoliviaInverter {
 
       // call callback with data, caller will handle writing to UART
       callback(&bytes[0], sizeof(bytes));
-
-      // update timestamp
-      last_request = millis();
     }
 
     bool should_update_sensors() {
@@ -104,11 +92,11 @@ class DeltaSoliviaInverter {
       return true;
     }
 
-    void update_sensors(const std::vector<uint8_t>& bytes) {
+    void update_sensors(const uint8_t* buffer) {
       ESP_LOGD(LOG_TAG, "INVERTER#%u - updating sensors", address_);
 
       // parse buffer and update sensors
-      Variant15Parser parser(bytes, true);
+      Variant15Parser parser(buffer, true);
       parser.parse();
 
       if (solar_voltage_ != nullptr) {

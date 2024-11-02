@@ -1,8 +1,8 @@
 // Solivia packet CRC calculation (page 8/9)
 #include "delta-solivia-crc.h"
 
-uint16_t delta_solivia_crc(uint8_t *sop, uint8_t *eop) {
-  uint8_t *char_ptr = sop;
+uint16_t delta_solivia_crc(const uint8_t *sop, const uint8_t *eop) {
+  const uint8_t *char_ptr = sop;
   uint16_t crc = 0x0000;
 
   do {
