@@ -1,7 +1,7 @@
 #pragma once
 
 // logging tag
-#define LOG_TAG "DeltaSolivia"
+static const char *const LOG_TAG = "DeltaSolivia";
 
 // protocol characters (page 7)
 #define STX 0x02

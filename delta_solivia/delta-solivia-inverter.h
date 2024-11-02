@@ -40,6 +40,8 @@ class DeltaSoliviaInverter {
     explicit DeltaSoliviaInverter(uint8_t address) : address_(address), last_update(0), update_interval(10000) {}
 
     uint8_t get_address() { return address_; }
+    void set_update_interval(uint32_t interval) { update_interval = interval; }
+
     void set_part_number(TextSensor* part_number) { part_number_ = part_number; }
     void set_serial_number(TextSensor* serial_number) { serial_number_ = serial_number; }
     void set_solar_voltage(Sensor* solar_voltage) { solar_voltage_ = solar_voltage; }
@@ -57,9 +59,8 @@ class DeltaSoliviaInverter {
     void set_max_ac_power_today(Sensor* max_ac_power_today) { max_ac_power_today_ = max_ac_power_today; }
     void set_max_solar_input_power(Sensor* max_solar_input_power) { max_solar_input_power_ = max_solar_input_power; }
 
-    void set_update_interval(uint32_t interval) {
-      update_interval = interval;
-    }
+    bool should_update_sensors();
+    void update_sensors(const uint8_t*);
 
     template <typename F>
     void request_update(const F& callback) {
@@ -83,90 +84,6 @@ class DeltaSoliviaInverter {
 
       // call callback with data, caller will handle writing to UART
       callback(&bytes[0], sizeof(bytes));
-    }
-
-    bool should_update_sensors() {
-      uint32_t now = millis();
-
-      if (now - last_update < update_interval) {
-        return false;
-      }
-      return true;
-    }
-
-    void update_sensors(const uint8_t* buffer) {
-      ESP_LOGD(LOG_TAG, "INVERTER#%u - updating sensors", address_);
-
-      // parse buffer and update sensors
-      Variant15Parser parser(buffer, true);
-      parser.parse();
-
-      if (part_number_ != nullptr) {
-        part_number_->publish_state(parser.SAP_part_number);
-      }
-
-      if (serial_number_ != nullptr) {
-        serial_number_->publish_state(parser.SAP_serial_number);
-      }
-
-      if (solar_voltage_ != nullptr) {
-        solar_voltage_->publish_state(parser.Solar_voltage_input_1);
-      }
-
-      if (solar_current_ != nullptr) {
-        solar_current_->publish_state(parser.Solar_current_input_1);
-      }
-
-      if (ac_current_ != nullptr) {
-        ac_current_->publish_state(parser.AC_current);
-      }
-
-      if (ac_voltage_ != nullptr) {
-        ac_voltage_->publish_state(parser.AC_voltage);
-      }
-
-      if (ac_power_ != nullptr) {
-        ac_power_->publish_state(parser.AC_power);
-      }
-
-      if (ac_frequency_ != nullptr) {
-        ac_frequency_->publish_state(parser.AC_frequency);
-      }
-
-      if (grid_ac_voltage_ != nullptr) {
-        grid_ac_voltage_->publish_state(parser.AC_Grid_voltage);
-      }
-
-      if (grid_ac_frequency_ != nullptr) {
-        grid_ac_frequency_->publish_state(parser.AC_Grid_frequency);
-      }
-
-      if (inverter_runtime_minutes_ != nullptr) {
-        inverter_runtime_minutes_->publish_state(parser.Inverter_runtime_minutes);
-      }
-
-      if (day_supplied_ac_energy_ != nullptr) {
-        day_supplied_ac_energy_->publish_state(parser.Day_supplied_ac_energy);
-      }
-
-      if (max_ac_power_today_ != nullptr) {
-        max_ac_power_today_->publish_state(parser.Max_ac_power_today);
-      }
-
-      if (max_solar_input_power_ != nullptr) {
-        max_solar_input_power_->publish_state(parser.Max_solar_1_input_power);
-      }
-
-      if (inverter_runtime_hours_ != nullptr) {
-        inverter_runtime_hours_->publish_state(parser.Inverter_runtime_hours);
-      }
-
-      if (supplied_ac_energy_ != nullptr) {
-        supplied_ac_energy_->publish_state(parser.Supplied_ac_energy);
-      }
-
-      // update timestamp
-      last_update = millis();
     }
 };
 
