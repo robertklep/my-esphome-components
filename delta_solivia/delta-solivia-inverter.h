@@ -40,6 +40,8 @@ class DeltaSoliviaInverter {
     explicit DeltaSoliviaInverter(uint8_t address) : address_(address), last_update(0), update_interval(10000) {}
 
     uint8_t get_address() { return address_; }
+    void set_part_number(TextSensor* part_number) { part_number_ = part_number; }
+    void set_serial_number(TextSensor* serial_number) { serial_number_ = serial_number; }
     void set_solar_voltage(Sensor* solar_voltage) { solar_voltage_ = solar_voltage; }
     void set_solar_current(Sensor* solar_current) { solar_current_ = solar_current; }
     void set_ac_current(Sensor* ac_current) { ac_current_ = ac_current; }
@@ -98,6 +100,14 @@ class DeltaSoliviaInverter {
       // parse buffer and update sensors
       Variant15Parser parser(buffer, true);
       parser.parse();
+
+      if (part_number_ != nullptr) {
+        part_number_->publish_state(parser.SAP_part_number);
+      }
+
+      if (serial_number_ != nullptr) {
+        serial_number_->publish_state(parser.SAP_serial_number);
+      }
 
       if (solar_voltage_ != nullptr) {
         solar_voltage_->publish_state(parser.Solar_voltage_input_1);

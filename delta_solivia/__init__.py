@@ -3,7 +3,7 @@ import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome import pins
 from esphome.cpp_helpers import gpio_pin_expression
-from esphome.components import uart, sensor
+from esphome.components import uart, sensor, text_sensor
 from esphome.const import (
     CONF_ID,
     CONF_UART_ID,
@@ -47,6 +47,8 @@ CONF_INV_ADDRESS         = "address"
 CONF_INV_UPDATE_INVERVAL = "update_interval"
 
 # per-inverter measurements
+CONF_INV_PART_NUMBER           = "part_number"
+CONF_INV_SERIAL_NUMBER         = "serial_number"
 CONF_INV_TOTAL_ENERGY          = "total_energy"
 CONF_INV_TODAY_ENERGY          = "today_energy"
 CONF_INV_DC_VOLTAGE            = "dc_voltage"
@@ -75,6 +77,8 @@ INVERTER_SCHEMA = cv.Schema({
     cv.GenerateID(): cv.declare_id(DeltaSoliviaInverter),
     cv.Required(CONF_INV_ADDRESS): cv.int_range(min = 1),
     cv.Optional(CONF_INV_UPDATE_INVERVAL): cv.update_interval,
+    cv.Optional(CONF_INV_PART_NUMBER): text_sensor.text_sensor_schema(),
+    cv.Optional(CONF_INV_SERIAL_NUMBER): text_sensor.text_sensor_schema(),
     cv.Optional(CONF_INV_TOTAL_ENERGY): sensor.sensor_schema(
         unit_of_measurement = UNIT_KILOWATT_HOURS,
         icon                = 'mdi:meter-electric',
@@ -202,6 +206,14 @@ async def to_code(config):
         inverter = cg.new_Pvariable(inverter_config[CONF_ID], DeltaSoliviaInverter(inverter_config[CONF_INV_ADDRESS]))
 
         cg.add(inverter.set_update_interval(inverter_config[CONF_INV_UPDATE_INVERVAL]))
+
+        if CONF_INV_PART_NUMBER in inverter_config:
+            sens = await text_sensor.new_text_sensor(inverter_config[CONF_INV_PART_NUMBER])
+            cg.add(inverter.set_part_number(sens))
+
+        if CONF_INV_SERIAL_NUMBER in inverter_config:
+            sens = await text_sensor.new_text_sensor(inverter_config[CONF_INV_SERIAL_NUMBER])
+            cg.add(inverter.set_serial_number(sens))
 
         if CONF_INV_TOTAL_ENERGY in inverter_config:
             sens = await sensor.new_sensor(inverter_config[CONF_INV_TOTAL_ENERGY])
