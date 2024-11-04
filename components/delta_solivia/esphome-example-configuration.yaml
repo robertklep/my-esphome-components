@@ -1,0 +1,119 @@
+esphome:
+  name: 'delta-solivia-reader'
+  friendly_name: 'Delta Solivia Reader'
+
+external_components:
+  - source: github://robertklep/my-esphome-components
+    components: [ delta_solivia ]
+
+esp32:
+  # look here for more information on board ID's:
+  # https://esphome.io/components/esp32.html#esp32-platform
+  board: YOUR_BOARD_TYPE
+
+# enable logging (entirely optional)
+logger:
+  level: INFO
+  baud_rate: 115200
+
+# enable wifi
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+# enable Home Assistant API
+api:
+
+# enable over-the-air updates
+ota:
+  - platform: esphome
+
+# configure a UART (required!)
+uart:
+  id: solivia_uart
+  tx_pin: GPIO4
+  rx_pin: GPIO3
+  rx_buffer_size: 512
+  baud_rate: 19200
+  parity: NONE
+  stop_bits: 1
+
+# configure the Delta Solivia component
+delta_solivia:
+  uart_id: solivia_uart       # the id of the UART configured above
+  flow_control_pin: GPIO2     # see README.md
+  has_gateway: false          # see README.md
+  update_interval: 10s        # see README.md
+  inverters:
+    - address: 1
+      throttle: 30s           # see README.md
+      part_number:
+        name: 'Inverter#1 Part Number'
+      serial_number:
+        name: 'Inverter#1 Serial Number'
+      ac_power:
+        name: 'Inverter#1 Current Power'
+      total_energy:
+        name: 'Inverter#1 Total Energy'
+      today_energy:
+        name: 'Inverter#1 Today Energy'
+        filters:
+          - timeout: 2h
+      dc_voltage:
+        name: 'Inverter#1 DC Voltage'
+      dc_current:
+        name: 'Inverter#1 DC Current'
+      ac_voltage:
+        name: 'Inverter#1 AC Voltage'
+      ac_current:
+        name: 'Inverter#1 AC Current'
+      ac_frequency:
+        name: 'Inverter#1 AC Frequency'
+      grid_voltage:
+        name: 'Inverter#1 Grid Voltage'
+      grid_frequency:
+        name: 'Inverter#1 Grid Frequency'
+      runtime_hours:
+        name: 'Inverter#1 Runtime Hours'
+      runtime_minutes:
+        name: 'Inverter#1 Runtime Minutes'
+      max_ac_power_today:
+        name: 'Inverter#1 AC Power Today'
+      max_solar_input_power:
+        name: 'Inverter#1 Solar Input Power'
+    - address: 2
+      throttle: 30s
+      part_number:
+        name: 'Inverter#2 Part Number'
+      serial_number:
+        name: 'Inverter#2 Serial Number'
+      ac_power:
+        name: 'Inverter#2 Current Power'
+      total_energy:
+        name: 'Inverter#2 Total Energy'
+      today_energy:
+        name: 'Inverter#2 Today Energy'
+        filters:
+          - timeout: 2h
+      dc_voltage:
+        name: 'Inverter#2 DC Voltage'
+      dc_current:
+        name: 'Inverter#2 DC Current'
+      ac_voltage:
+        name: 'Inverter#2 AC Voltage'
+      ac_current:
+        name: 'Inverter#2 AC Current'
+      ac_frequency:
+        name: 'Inverter#2 AC Frequency'
+      grid_voltage:
+        name: 'Inverter#2 Grid Voltage'
+      grid_frequency:
+        name: 'Inverter#2 Grid Frequency'
+      runtime_hours:
+        name: 'Inverter#2 Runtime Hours'
+      runtime_minutes:
+        name: 'Inverter#2 Runtime Minutes'
+      max_ac_power_today:
+        name: 'Inverter#2 AC Power Today'
+      max_solar_input_power:
+        name: 'Inverter#2 Solar Input Power'
