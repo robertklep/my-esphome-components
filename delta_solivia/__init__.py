@@ -43,8 +43,8 @@ CONF_INVERTERS = "inverters"
 CONF_HAS_GATEWAY = "has_gateway"
 
 # per-inverter config
-CONF_INV_ADDRESS         = "address"
-CONF_INV_UPDATE_INVERVAL = "update_interval"
+CONF_INV_ADDRESS  = "address"
+CONF_INV_THROTTLE = "throttle"
 
 # per-inverter measurements
 CONF_INV_PART_NUMBER           = "part_number"
@@ -76,7 +76,7 @@ def _validate_inverters(config):
 INVERTER_SCHEMA = cv.Schema({
     cv.GenerateID(): cv.declare_id(DeltaSoliviaInverter),
     cv.Required(CONF_INV_ADDRESS): cv.int_range(min = 1),
-    cv.Optional(CONF_INV_UPDATE_INVERVAL): cv.update_interval,
+    cv.Optional(CONF_INV_THROTTLE, default = '10s'): cv.update_interval,
     cv.Optional(CONF_INV_PART_NUMBER): text_sensor.text_sensor_schema(),
     cv.Optional(CONF_INV_SERIAL_NUMBER): text_sensor.text_sensor_schema(),
     cv.Optional(CONF_INV_TOTAL_ENERGY): sensor.sensor_schema(
@@ -203,10 +203,47 @@ async def to_code(config):
     cg.add(component.set_has_gateway(has_gateway))
 
     for inverter_config in config[CONF_INVERTERS]:
-        inverter = cg.new_Pvariable(inverter_config[CONF_ID], DeltaSoliviaInverter(inverter_config[CONF_INV_ADDRESS]))
+        address  = inverter_config[CONF_INV_ADDRESS]
+        throttle = inverter_config[CONF_INV_THROTTLE];
+        inverter = cg.new_Pvariable(inverter_config[CONF_ID], DeltaSoliviaInverter(address))
 
-        cg.add(inverter.set_update_interval(inverter_config[CONF_INV_UPDATE_INVERVAL]))
+        # create all numerical sensors, each one with a throttle_average filter
+        # to prevent overloading HA
+        async def make_sensor(field, method):
+            if field not in inverter_config: return
 
+            # create the throttle filter
+            filter_id = cv.declare_id(sensor.ThrottleAverageFilter)(f'{field}_{address}')
+            filter = cg.new_Pvariable(filter_id, sensor.ThrottleAverageFilter(throttle))
+            cg.add(cg.App.register_component(filter))
+            cg.add(filter.set_component_source('sensor'))
+
+            sens = await sensor.new_sensor(inverter_config[field])
+            cg.add(sens.add_filters([ filter ]))
+
+            cg.add(getattr(inverter, method)(sens))
+
+        for [ field, method ] in [
+            ( CONF_INV_TOTAL_ENERGY, 'set_supplied_ac_energy' ),
+            ( CONF_INV_TODAY_ENERGY, 'set_day_supplied_ac_energy' ),
+            ( CONF_INV_DC_VOLTAGE, 'set_solar_voltage' ),
+            ( CONF_INV_DC_CURRENT, 'set_solar_current' ),
+            ( CONF_INV_AC_VOLTAGE, 'set_ac_voltage' ),
+            ( CONF_INV_AC_CURRENT, 'set_ac_current' ),
+            ( CONF_INV_AC_FREQ, 'set_ac_frequency' ),
+            ( CONF_INV_AC_POWER, 'set_ac_power' ),
+            ( CONF_INV_GRID_VOLTAGE, 'set_grid_ac_voltage' ),
+            ( CONF_INV_GRID_FREQ, 'set_grid_ac_frequency' ),
+            ( CONF_INV_RUNTIME_HOURS, 'set_inverter_runtime_hours' ),
+            ( CONF_INV_RUNTIME_MINUTES, 'set_inverter_runtime_minutes' ),
+            ( CONF_INV_MAX_AC_POWER, 'set_max_ac_power_today' ),
+            ( CONF_INV_MAX_SOLAR_INPUT_POWER, 'set_max_solar_input_power')
+        ]:
+            await make_sensor(field, method);
+
+        # text sensors cannot be throttled, but the inverter class will only
+        # update them once (which should be enough since part and serial
+        # numbers won't change)
         if CONF_INV_PART_NUMBER in inverter_config:
             sens = await text_sensor.new_text_sensor(inverter_config[CONF_INV_PART_NUMBER])
             cg.add(inverter.set_part_number(sens))
@@ -215,61 +252,5 @@ async def to_code(config):
             sens = await text_sensor.new_text_sensor(inverter_config[CONF_INV_SERIAL_NUMBER])
             cg.add(inverter.set_serial_number(sens))
 
-        if CONF_INV_TOTAL_ENERGY in inverter_config:
-            sens = await sensor.new_sensor(inverter_config[CONF_INV_TOTAL_ENERGY])
-            cg.add(inverter.set_supplied_ac_energy(sens))
-
-        if CONF_INV_TODAY_ENERGY in inverter_config:
-            sens = await sensor.new_sensor(inverter_config[CONF_INV_TODAY_ENERGY])
-            cg.add(inverter.set_day_supplied_ac_energy(sens))
-
-        if CONF_INV_DC_VOLTAGE in inverter_config:
-            sens = await sensor.new_sensor(inverter_config[CONF_INV_DC_VOLTAGE])
-            cg.add(inverter.set_solar_voltage(sens))
-
-        if CONF_INV_DC_CURRENT in inverter_config:
-            sens = await sensor.new_sensor(inverter_config[CONF_INV_DC_CURRENT])
-            cg.add(inverter.set_solar_current(sens))
-
-        if CONF_INV_AC_VOLTAGE in inverter_config:
-            sens = await sensor.new_sensor(inverter_config[CONF_INV_AC_VOLTAGE])
-            cg.add(inverter.set_ac_voltage(sens))
-
-        if CONF_INV_AC_CURRENT in inverter_config:
-            sens = await sensor.new_sensor(inverter_config[CONF_INV_AC_CURRENT])
-            cg.add(inverter.set_ac_current(sens))
-
-        if CONF_INV_AC_FREQ in inverter_config:
-            sens = await sensor.new_sensor(inverter_config[CONF_INV_AC_FREQ])
-            cg.add(inverter.set_ac_frequency(sens))
-
-        if CONF_INV_AC_POWER in inverter_config:
-            sens = await sensor.new_sensor(inverter_config[CONF_INV_AC_POWER])
-            cg.add(inverter.set_ac_power(sens))
-
-        if CONF_INV_GRID_VOLTAGE in inverter_config:
-            sens = await sensor.new_sensor(inverter_config[CONF_INV_GRID_VOLTAGE])
-            cg.add(inverter.set_grid_ac_voltage(sens))
-
-        if CONF_INV_GRID_FREQ in inverter_config:
-            sens = await sensor.new_sensor(inverter_config[CONF_INV_GRID_FREQ])
-            cg.add(inverter.set_grid_ac_frequency(sens))
-
-        if CONF_INV_RUNTIME_HOURS in inverter_config:
-            sens = await sensor.new_sensor(inverter_config[CONF_INV_RUNTIME_HOURS])
-            cg.add(inverter.set_inverter_runtime_hours(sens))
-
-        if CONF_INV_RUNTIME_MINUTES in inverter_config:
-            sens = await sensor.new_sensor(inverter_config[CONF_INV_RUNTIME_MINUTES])
-            cg.add(inverter.set_inverter_runtime_minutes(sens))
-
-        if CONF_INV_MAX_AC_POWER in inverter_config:
-            sens = await sensor.new_sensor(inverter_config[CONF_INV_MAX_AC_POWER])
-            cg.add(inverter.set_max_ac_power_today(sens))
-
-        if CONF_INV_MAX_SOLAR_INPUT_POWER in inverter_config:
-            sens = await sensor.new_sensor(inverter_config[CONF_INV_MAX_SOLAR_INPUT_POWER])
-            cg.add(inverter.set_max_solar_input_power(sens))
-
-        cg.add(component .add_inverter(inverter))
-
+        # add inverter to component
+        cg.add(component.add_inverter(inverter))

@@ -1,6 +1,6 @@
 # Delta Solivia RS485 component for ESPHome
 
-This component for ESPHome can be used to directly read measurement/statistics data from the RS485 port of _some_ Delta Solivia inverters. It does not require having a Solivia Gateway device, but will function just fine if you have one.
+This component for ESPHome can be used to directly read measurement/statistics data from the RS485 port of _some_ Delta Solivia inverters. It does not require having a Solivia Gateway device, but will work if you have one.
 
 ## SYNOPSIS
 
@@ -81,6 +81,12 @@ delta_solivia:
   # The UART configured above
   uart_id: solivia_uart
 
+  # See below
+  update_interval: 10s
+
+  # See below
+  has_gateway: false
+
   # Optional flow control pin, only configure this if your board doesn't have automatic flow control.
   # (before writing to the bus, the pin will be pulled up to assume control over the bus)
   flow_control_pin: GPIOX
@@ -98,7 +104,11 @@ delta_solivia:
   # interested in a specific sensor, just leave it out.
   inverters:
     - address: 1
-      update_interval: 10s # see below
+      throttle: 10s # see below
+      part_number:
+        name: 'Inverter#1 Part Number'
+      serial_number:
+        name: 'Inverter#1 Serial Number'
       ac_power:
         name: 'Inverter#1 Current Power'
       total_energy:
@@ -128,6 +138,10 @@ delta_solivia:
       max_solar_input_power:
         name: 'Inverter#1 Solar Input Power'
     - address: 2
+      part_number:
+        name: 'Inverter#2 Part Number'
+      serial_number:
+        name: 'Inverter#2 Serial Number'
       ac_power:
         name: 'Inverter#2 Current Power'
       total_energy:
@@ -158,8 +172,10 @@ delta_solivia:
         name: 'Inverter#2 Solar Input Power'
 ```
 
-#### `update_interval`
+#### With or without gateway
 
-The `update_interval` configuration variable serves two purposes, depending on whether you have a Solivia Gateway or not:
-* If you have a gateway, the gateway will request inverters to update their statistics quite often, sometimes once per second. Since this may cause excessive writing to the Home Assistant database, the update interval will throttle the amount of sensors updates to, by default, at most once per 10 seconds.
-* If you don't have a gateway, the component will use the interval to determine how often to ask an inverters to update its statistics.
+If you have a Solivia gateway, you need to set the `has_gateway` to `true`. It will let the component leave requesting updates to the gateway, to prevent having two primaries active on the bus.
+
+The `update_interval` option of the component serves different purposes depending on whether you have a gateway or not. With a gateway, it will automatically be set to a low value (0.5s) to prevent missing updates sent by the inverters. Without a gateway, it will be the interval at which the component will request a single inverter (in a round-robin fashion) to send an update. The default of 10 seconds should be sufficient, although you can decrease it if you want faster updates or if you have more than one inverter.
+
+The `throttle` option for each inverter will limit the amount of state updates sent back to HA. This is especially relevant if you have a gateway, since it will request updates for each inverter about every second (remember that each state update will also be stored in HA's database). The default throttle interval is 10 seconds. Internally, this is implemented using a [`throttle_average`](https://esphome.io/components/sensor/#throttle-average) filter.

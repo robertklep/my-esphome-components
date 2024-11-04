@@ -3,15 +3,6 @@
 namespace esphome {
 namespace delta_solivia {
 
-bool DeltaSoliviaInverter::should_update_sensors() {
-  uint32_t now = millis();
-
-  if (now - last_update < update_interval) {
-    return false;
-  }
-  return true;
-}
-
 void DeltaSoliviaInverter::update_sensors(const uint8_t* buffer) {
   ESP_LOGD(LOG_TAG, "INVERTER#%u - updating sensors", address_);
 
@@ -19,11 +10,11 @@ void DeltaSoliviaInverter::update_sensors(const uint8_t* buffer) {
   Variant15Parser parser(buffer, true);
   parser.parse();
 
-  if (part_number_ != nullptr) {
+  if (part_number_ != nullptr && ! part_number_->has_state()) {
     part_number_->publish_state(parser.SAP_part_number);
   }
 
-  if (serial_number_ != nullptr) {
+  if (serial_number_ != nullptr && ! serial_number_->has_state()) {
     serial_number_->publish_state(parser.SAP_serial_number);
   }
 
@@ -82,9 +73,6 @@ void DeltaSoliviaInverter::update_sensors(const uint8_t* buffer) {
   if (supplied_ac_energy_ != nullptr) {
     supplied_ac_energy_->publish_state(parser.Supplied_ac_energy);
   }
-
-  // update timestamp
-  last_update = millis();
 }
 
 }

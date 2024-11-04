@@ -38,14 +38,11 @@ bool DeltaSoliviaComponent::process_frame(const Frame& frame) {
 
   // update inverter
   auto inverter = get_inverter(frame[2]);
-  if (inverter->should_update_sensors()) {
-    // copy vector to plain byte buffer
-    uint8_t buffer[frame.size()];
-    std::copy(frame.begin(), frame.end(), buffer);
+  uint8_t buffer[frame.size()];
+  std::copy(frame.begin(), frame.end(), buffer); // copy vector to plain byte buffer
+  inverter->update_sensors(buffer);
 
-    inverter->update_sensors(buffer);
-  }
-
+  // done
   return true;
 }
 

@@ -15,9 +15,7 @@ using text_sensor::TextSensor;
 
 class DeltaSoliviaInverter {
   protected:
-    uint8_t  address_;
-    uint32_t last_update;
-    uint32_t update_interval;
+    uint8_t address_;
 
   public:
     TextSensor* part_number_ { nullptr };
@@ -37,10 +35,9 @@ class DeltaSoliviaInverter {
     Sensor* max_ac_power_today_ { nullptr };
     Sensor* max_solar_input_power_ { nullptr };
 
-    explicit DeltaSoliviaInverter(uint8_t address) : address_(address), last_update(0), update_interval(10000) {}
+    explicit DeltaSoliviaInverter(uint8_t address) : address_(address) {}
 
     uint8_t get_address() { return address_; }
-    void set_update_interval(uint32_t interval) { update_interval = interval; }
 
     void set_part_number(TextSensor* part_number) { part_number_ = part_number; }
     void set_serial_number(TextSensor* serial_number) { serial_number_ = serial_number; }
@@ -59,7 +56,6 @@ class DeltaSoliviaInverter {
     void set_max_ac_power_today(Sensor* max_ac_power_today) { max_ac_power_today_ = max_ac_power_today; }
     void set_max_solar_input_power(Sensor* max_solar_input_power) { max_solar_input_power_ = max_solar_input_power; }
 
-    bool should_update_sensors();
     void update_sensors(const uint8_t*);
 
     template <typename F>
