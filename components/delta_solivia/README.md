@@ -172,6 +172,8 @@ delta_solivia:
         name: 'Inverter#2 Solar Input Power'
 ```
 
+There's also a full example YAML file [here](esphome-example-configuration.yaml).
+
 #### With or without gateway
 
 If you have a Solivia gateway, you need to set the `has_gateway` to `true`. It will let the component leave requesting updates to the gateway, to prevent having two primaries active on the bus.
