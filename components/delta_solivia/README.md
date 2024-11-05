@@ -89,6 +89,10 @@ delta_solivia:
 
   # Optional flow control pin, only configure this if your board doesn't have automatic flow control.
   # (before writing to the bus, the pin will be pulled up to assume control over the bus)
+  #
+  # Note: this also needs to be defined if you have a gateway, even though the gateway won't write
+  #       to the bus on such occassions (the reason is that the flow control pin needs to be pulled
+  #       low at setup time to prevent blocking the bus)
   flow_control_pin: GPIOX
 
   # Here you can configure multiple inverters.

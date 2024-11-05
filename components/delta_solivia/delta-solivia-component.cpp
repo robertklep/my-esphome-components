@@ -25,6 +25,7 @@ DeltaSoliviaInverter* DeltaSoliviaComponent::get_inverter(uint8_t address) {
 // process an incoming packet
 bool DeltaSoliviaComponent::process_frame(const Frame& frame) {
   if (! validate_header(frame)) {
+    ESP_LOGD(LOG_TAG, "FRAME - incorrect header");
     return false;
   }
 
@@ -49,7 +50,6 @@ bool DeltaSoliviaComponent::process_frame(const Frame& frame) {
 // validate packet header
 bool DeltaSoliviaComponent::validate_header(const Frame& frame) {
   if (frame.size() < 6 || frame[0] != STX || frame[1] != ACK || frame[2] == 0 || frame[4] != 0x60 || frame[5] != 0x01) {
-    ESP_LOGD(LOG_TAG, "FRAME - incorrect header");
     return false;
   }
 
@@ -58,6 +58,7 @@ bool DeltaSoliviaComponent::validate_header(const Frame& frame) {
     return false;
   }
 
+#if DEBUG_HEADER
   ESP_LOGD(LOG_TAG, "FRAME - SOP = 0x%02x, PC = 0x%02x, address = %u, data size = %u, cmd = 0x%02x, sub cmd = 0x%02x",
     frame[0],
     frame[1],
@@ -66,6 +67,8 @@ bool DeltaSoliviaComponent::validate_header(const Frame& frame) {
     frame[4],
     frame[5]
   );
+#endif
+
   return true;
 }
 
@@ -194,8 +197,14 @@ void DeltaSoliviaComponent::update_with_gateway() {
       continue;
     }
 
-    // process frame
-    process_frame(frame);
+    // throttle?
+    static unsigned int last_update = 0;
+    unsigned int now                = millis();
+    if (now - last_update >= throttle) {
+      // process frame
+      process_frame(frame);
+      last_update = millis();
+    }
 
     // clear vector for next round
     frame.clear();

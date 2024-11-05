@@ -19,13 +19,15 @@ using InverterMap = std::map<uint8_t, DeltaSoliviaInverter*>;
 using Frame       = std::vector<uint8_t>;
 
 class DeltaSoliviaComponent: public PollingComponent, public UARTDevice {
+  unsigned int throttle;
   InverterMap inverters;
   GPIOPin *flow_control_pin{nullptr};
   bool has_gateway;
 
   public:
-    DeltaSoliviaComponent() : has_gateway(false) {}
+    DeltaSoliviaComponent() : has_gateway(false), throttle(10000) {}
 
+    void set_throttle(unsigned int throttle_) { throttle = throttle_; }
     void set_flow_control_pin(GPIOPin *flow_control_pin_) { flow_control_pin = flow_control_pin_; }
     void set_has_gateway(bool has_gateway_) { has_gateway = has_gateway_; }
 

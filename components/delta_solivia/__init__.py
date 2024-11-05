@@ -207,6 +207,10 @@ async def to_code(config):
         throttle = inverter_config[CONF_INV_THROTTLE];
         inverter = cg.new_Pvariable(inverter_config[CONF_ID], DeltaSoliviaInverter(address))
 
+        # set throttle interval on component, which is used
+        # to prevent excessive work when running in gateway mode
+        cg.add(component.set_throttle(throttle));
+
         # create all numerical sensors, each one with a throttle_average filter
         # to prevent overloading HA
         async def make_sensor(field, method):
