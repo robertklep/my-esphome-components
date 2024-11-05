@@ -73,10 +73,10 @@ delta_solivia:
         name: 'Inverter#1 Grid Voltage'
       grid_frequency:
         name: 'Inverter#1 Grid Frequency'
-      runtime_hours:
-        name: 'Inverter#1 Runtime Hours'
-      runtime_minutes:
-        name: 'Inverter#1 Runtime Minutes'
+      runtime_total:
+        name: 'Inverter#1 Runtime Total'
+      runtime_today:
+        name: 'Inverter#1 Runtime Today'
       max_ac_power_today:
         name: 'Inverter#1 AC Power Today'
       max_solar_input_power:
@@ -109,10 +109,10 @@ delta_solivia:
         name: 'Inverter#2 Grid Voltage'
       grid_frequency:
         name: 'Inverter#2 Grid Frequency'
-      runtime_hours:
-        name: 'Inverter#2 Runtime Hours'
-      runtime_minutes:
-        name: 'Inverter#2 Runtime Minutes'
+      runtime_total:
+        name: 'Inverter#2 Runtime Total'
+      runtime_today:
+        name: 'Inverter#2 Runtime Today'
       max_ac_power_today:
         name: 'Inverter#2 AC Power Today'
       max_solar_input_power:
