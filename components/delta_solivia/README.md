@@ -89,10 +89,6 @@ delta_solivia:
 
   # Optional flow control pin, only configure this if your board doesn't have automatic flow control.
   # (before writing to the bus, the pin will be pulled up to assume control over the bus)
-  #
-  # Note: this also needs to be defined if you have a gateway, even though the gateway won't write
-  #       to the bus on such occassions (the reason is that the flow control pin needs to be pulled
-  #       low at setup time to prevent blocking the bus)
   flow_control_pin: GPIOX
 
   # Here you can configure multiple inverters.
@@ -180,7 +176,7 @@ There's also a full example YAML file [here](esphome-example-configuration.yaml)
 
 #### With or without gateway
 
-If you have a Solivia gateway, you need to set the `has_gateway` to `true`. It will let the component leave requesting updates to the gateway, to prevent having two primaries active on the bus.
+If you have a Solivia gateway, you need to set the `has_gateway` to `true`. It will let the component leave requesting updates to the gateway, to prevent having two primaries active on the bus. Note: even though the component will be passive (not writing) when combined with a gateway, you still need to configure the flow control pin if your board requires manual flow control. This is to make sure the pin is set to LOW during component setup, to prevent locking up the bus.
 
 The `update_interval` option of the component serves different purposes depending on whether you have a gateway or not. With a gateway, it will automatically be set to a low value (0.5s) to prevent missing updates sent by the inverters. Without a gateway, it will be the interval at which the component will request a single inverter (in a round-robin fashion) to send an update. The default of 10 seconds should be sufficient, although you can decrease it if you want faster updates or if you have more than one inverter.
 
