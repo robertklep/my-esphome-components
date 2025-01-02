@@ -38,6 +38,9 @@ These modules are cheap and easy to get. They require explicit flow control (see
 
 ##### Pinout
 
+It's not a requirement to use these exact GPIO pins on the ESP32, you can use others if convenient. Just make sure you change the YAML configuration to reflect the different pins.
+
+
 | ESP32 | RS485 module | Purpose      |
 |-------|--------------|--------------|
 | GPIO4 | DI           | TX           |
