@@ -6,21 +6,7 @@ This component for ESPHome can be used to directly read measurement/statistics d
 
 The document "Public Solar Inverter Communication Protocol (Version 1.2)", from Delta Energy Systems (Germany) GmbH, documents the protocol that Delta Solivia inverters use over their RS485 port. There are dozens of Solivia models, and about 10 different protocol variants.
 
-This component only supports one variant, supported by the following inverters:
-* SOLIVIA 2.5 EU G3
-* SOLIVIA 3.0 EU G3
-* SOLIVIA 3.3 EU G3
-* SOLIVIA 3.6 EU G3
-* SOLIVIA 2.5 NA G4
-* SOLIVIA 3.0 NA G4
-* SOLIVIA 3.3 NA G4
-* SOLIVIA 3.6 NA G4
-* SOLIVIA 4.4 NA G4
-* SOLIVIA 5.0 NA G4
-* SOLIVIA 2.5 AP G3
-* SOLIVIA 3.0 AP G3
-* SOLIVIA 3.3 AP G3
-* SOLIVIA 3.6 AP G3
+[See below](#compatibility-table) for a list of supported models.
 
 The component does not perform any checks to see if it's talking to a supported inverter, but just assumes it does, so using it for a different type of inverter will probably cause the component to either crash or to provide incorrect data. Nothing bad will happen with your inverter if you do try this.
 
@@ -184,3 +170,85 @@ If you have a Solivia gateway, you need to set the `has_gateway` to `true`. It w
 The `update_interval` option of the component serves different purposes depending on whether you have a gateway or not. With a gateway, it will automatically be set to a low value (0.5s) to prevent missing updates sent by the inverters. Without a gateway, it will be the interval at which the component will request a single inverter (in a round-robin fashion) to send an update. The default of 10 seconds should be sufficient, although you can decrease it if you want faster updates or if you have more than one inverter.
 
 The `throttle` option for each inverter will limit the amount of state updates sent back to HA. This is especially relevant if you have a gateway, since it will request updates for each inverter about every second (remember that each state update will also be stored in HA's database). The default throttle interval is 10 seconds. Internally, this is implemented using a [`throttle_average`](https://esphome.io/components/sensor/#throttle-average) filter.
+
+## Compatibility table
+
+| Variant | Model Name| Supported? | Parser |
+|--------|----------------------------|-----------|--------|
+| 1      | SI 2500                   | ❌        |        |
+| 3      | SI 3300                   | ❌        |        |
+| 4      | SI 5000                   | ❌        |        |
+| 9      | SOLIVIA 2.0 EU G3         | ❌        |        |
+| 11     | SI 11kW (3 phases module of CM/CS) | ❌ |        |
+| 14     | SOLIVIA 5.0 EU G3         | ❌        |        |
+| 15     | SOLIVIA 2.5 EU G3         | ✅        | Variant15 |
+| 18     | SOLIVIA 3.0 EU G3         | ✅        | Variant15 |
+| 19     | SOLIVIA 3.3 EU G3         | ✅        | Variant15 |
+| 20     | SOLIVIA 3.6 EU G3         | ✅        | Variant15 |
+| 27     | SOLIVIA 15 EU TL          | ❌        |        |
+| 28     | SOLIVIA 20 EU TL          | ❌        |        |
+| 31     | SOLIVIA 2.5 NA G4         | ✅        | Variant15 |
+| 34     | SOLIVIA 3.0 NA G4         | ✅        | Variant15 |
+| 35     | SOLIVIA 3.3 NA G4         | ✅        | Variant15 |
+| 36     | SOLIVIA 3.6 NA G4         | ✅        | Variant15 |
+| 38     | SOLIVIA 4.4 NA G4         | ✅        | Variant15 |
+| 39     | SOLIVIA 5.0 NA G4         | ✅        | Variant15 |
+| 43     | SOLIVIA 15 EU TL G4       | ❌        |        |
+| 44     | SOLIVIA 20 EU TL G4       | ❌        |        |
+| 55     | SOLIVIA 2.5 AP G3         | ✅        | Variant15 |
+| 58     | SOLIVIA 3.0 AP G3         | ✅        | Variant15 |
+| 59     | SOLIVIA 3.3 AP G3         | ✅        | Variant15 |
+| 60     | SOLIVIA 3.6 AP G3         | ✅        | Variant15 |
+| 63     | SOLIVIA 5.0 AP G3         | ❌        |        |
+| 85     | SOLIVIA 3.0 EU T4 TL      | ❌        |        |
+| 88     | SOLIVIA 5.0 EU T4 TL      | ❌        |        |
+| 89     | SOLIVIA 6.0 EU T4 TL      | ❌        |        |
+| 90     | SOLIVIA 8.0 EU T4 TL      | ❌        |        |
+| 91     | SOLIVIA 10 EU T4 TL       | ❌        |        |
+| 93     | SOLIVIA 12 EU T4 TL       | ❌        |        |
+| 95     | SOLIVIA 30 EU T4 TL       | ❌        |        |
+| 99     | SOLIVIA CS                | ❌        |        |
+| 100    | SOLIVIA CM                | ❌        |        |
+| 102    | SOLIVIA 2.0 EU G4 TR      | ❌        |        |
+| 103    | SOLIVIA 2.5 EU G4 TR      | ❌        |        |
+| 105    | SOLIVIA 3.0 EU G4 TR      | ❌        |        |
+| 106    | SOLIVIA 3.3 EU G4 TR      | ❌        |        |
+| 107    | SOLIVIA 3.6 EU G4 TR      | ❌        |        |
+| 109    | SOLIVIA 4.4 EU G4 TR      | ❌        |        |
+| 110    | SOLIVIA 5.0 EU G4 TR      | ❌        |        |
+| 111    | SOLIVIA 10 EU G4 TR (EVR) | ❌        |        |
+| 113    | SOLIVIA 11 EU G4 TR       | ❌        |        |
+| 114    | SOLIVIA 11 EU G4 TR (EVR) | ❌        |        |
+| 120    | SOLIVIA 3.0 NA G4 TL      | ❌        |        |
+| 121    | SOLIVIA 3.8 NA G4 TL      | ❌        |        |
+| 122    | SOLIVIA 5.0 NA G4 TL      | ❌        |        |
+| 123    | SOLIVIA 7.6 NA G4 TL      | ❌        |        |
+| 124    | SOLIVIA 5.2 NA G4 TL      | ❌        |        |
+| 125    | SOLIVIA 6.6 NA G4 TL      | ❌        |        |
+| 158    | DELTA 20 TL               | ❌        |        |
+| 159    | DELTA 15 TL               | ❌        |        |
+| 160    | DELTA 28 TL               | ❌        |        |
+| 161    | DELTA 24 TL               | ❌        |        |
+| 200    | RPI M6                    | ❌        |        |
+| 201    | RPI M8                    | ❌        |        |
+| 202    | RPI M10                   | ❌        |        |
+| 203    | RPI M12                   | ❌        |        |
+| 204    | RPI M15A                  | ❌        |        |
+| 205    | RPI M20A                  | ❌        |        |
+| 206    | RPI M30                   | ❌        |        |
+| 207    | RPI H3                    | ❌        |        |
+| 208    | RPI H5                    | ❌        |        |
+| 209    | RPI H3A                   | ❌        |        |
+| 210    | RPI H4A                   | ❌        |        |
+| 211    | RPI H5A                   | ❌        |        |
+| 212    | RPI H3A                   | ❌        |        |
+| 213    | RPI H4A                   | ❌        |        |
+| 214    | RPI H5A                   | ❌        |        |
+| 215    | RPI M6A                   | ❌        |        |
+| 216    | RPI M8A                   | ❌        |        |
+| 217    | RPI M10A                  | ❌        |        |
+| 218    | PRI M50A                  | ❌        |        |
+| 219    | RPI M30A                  | ❌        |        |
+| 220    | RPI M15A                  | ❌        |        |
+| 221    | RPI M20A                  | ❌        |        |
+| 222    | RPI H3                    | ❌        |        |
