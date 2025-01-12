@@ -25,7 +25,7 @@ class DeltaSoliviaInverter {
     uint8_t address_;
     uint8_t variant_;
     SensorMap sensors_;
-    TextSensorMap textSensors_;
+    TextSensorMap text_sensors_;
     BaseParser* parser = nullptr;
 
   public:
@@ -35,16 +35,16 @@ class DeltaSoliviaInverter {
       return address_;
     }
 
-    void addSensor(const std::string& name, Sensor* sensor) {
+    void add_sensor(const std::string& name, Sensor* sensor) {
       sensors_[name] = sensor;
     }
 
-    void addTextSensor(const std::string& name, TextSensor* sensor) {
-      textSensors_[name] = sensor;
+    void add_text_sensor(const std::string& name, TextSensor* sensor) {
+      text_sensors_[name] = sensor;
     }
 
-    void publishSensor(const std::string& name, float value, bool once = false);
-    void publishTextSensor(const std::string& name, const std::string& value, bool once = false);
+    void publish_sensor(const std::string& name, float value, bool once = false);
+    void publish_text_sensor(const std::string& name, const std::string& value, bool once = false);
     void update_sensors(const uint8_t*);
 
     template <typename F>

@@ -239,13 +239,13 @@ async def to_code(config):
             sens = await sensor.new_sensor(inverter_config[field])
             cg.add(sens.add_filters([ filter ]))
 
-            cg.add(inverter.addSensor(field, sens))
+            cg.add(inverter.add_sensor(field, sens))
 
         async def make_text_sensor(field):
             sens = await text_sensor.new_text_sensor(inverter_config[field])
-            cg.add(inverter.addTextSensor(field, sens))
+            cg.add(inverter.add_text_sensor(field, sens))
 
-        # Add all configured sensors and text sensors to the inverter instance
+        # add all configured sensors and text sensors to the inverter instance
         for field_name in inverter_config:
             field_value = inverter_config.get(field_name)
             try:

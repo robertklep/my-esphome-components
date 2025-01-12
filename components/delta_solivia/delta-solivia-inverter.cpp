@@ -14,11 +14,11 @@ DeltaSoliviaInverter::DeltaSoliviaInverter(uint8_t address, uint8_t variant) {
     parser = new Variant15Parser();
 
     // set handlers
-    parser->setPublishSensor([this](const std::string& name, float value) {
-      this->publishSensor(name, value);
+    parser->set_publish_sensor([this](const std::string& name, float value) {
+      this->publish_sensor(name, value);
     });
-    parser->setPublishTextSensor([this](const std::string& name, const std::string& value)  {
-      this->publishTextSensor(name, value);
+    parser->set_publish_text_sensor([this](const std::string& name, const std::string& value)  {
+      this->publish_text_sensor(name, value);
     });
   } else {
     ESP_LOGE(LOG_TAG, "INVERTER%u - invalid variant %u", address_, variant_);
@@ -27,10 +27,12 @@ DeltaSoliviaInverter::DeltaSoliviaInverter(uint8_t address, uint8_t variant) {
 
 void DeltaSoliviaInverter::update_sensors(const uint8_t* buffer) {
   ESP_LOGD(LOG_TAG, "INVERTER#%u - updating sensors", address_);
-  parser->parseFrame(buffer, true);
+  parser->parse_frame(buffer, true);
 }
 
-void DeltaSoliviaInverter::publishSensor(const std::string& name, float value, bool once) {
+void DeltaSoliviaInverter::publish_sensor(const std::string& name, float value, bool once) {
+  ESP_LOGI(LOG_TAG, "INVERTER#%u - sensor '%s', value = %f", address_, name.c_str(), value);
+#if 0
   auto entry= sensors_.find(name);
 
   if (entry != sensors_.end()) {
@@ -38,16 +40,20 @@ void DeltaSoliviaInverter::publishSensor(const std::string& name, float value, b
       entry->second->publish_state(value);
     }
   }
+#endif
 }
 
-void DeltaSoliviaInverter::publishTextSensor(const std::string& name, const std::string& value, bool once) {
-  auto entry= textSensors_.find(name);
+void DeltaSoliviaInverter::publish_text_sensor(const std::string& name, const std::string& value, bool once) {
+  ESP_LOGI(LOG_TAG, "INVERTER#%u - sensor '%s', value = %s", address_, name.c_str(), value.c_str());
+#if 0
+  auto entry= text_sensors_.find(name);
 
   if (entry != textSensors_.end()) {
     if (! once || ! entry->second->has_state()) {
       entry->second->publish_state(value);
     }
   }
+#endif
 }
 
 }
