@@ -9,7 +9,7 @@
 #include "esphome/components/text_sensor/text_sensor.h"
 #include "constants.h"
 #include "delta-solivia-crc.h"
-#include "parser-base.h"
+#include "frame-parser.h"
 
 namespace esphome {
 namespace delta_solivia {
@@ -26,7 +26,7 @@ class DeltaSoliviaInverter {
     uint8_t variant_;
     SensorMap sensors_;
     TextSensorMap text_sensors_;
-    BaseParser* parser = nullptr;
+    FrameParserInstance parser;
 
   public:
     DeltaSoliviaInverter(uint8_t address, uint8_t variant);

@@ -1,5 +1,5 @@
 #include "delta-solivia-inverter.h"
-#include "parser-variant-15.h"
+#include "frame-parser.h"
 
 namespace esphome {
 namespace delta_solivia {
@@ -7,22 +7,21 @@ namespace delta_solivia {
 DeltaSoliviaInverter::DeltaSoliviaInverter(uint8_t address, uint8_t variant) {
   address_ = address;
   variant_ = variant;
-  if (variant == 15 || variant == 18 || variant == 19 || variant == 20 || variant == 31 || variant == 34 || variant == 35 || variant == 36 || variant == 38 || variant == 39 ||
-      variant == 55 || variant == 58 || variant == 59 || variant == 60) {
-
-    // instantiate parser
-    parser = new Variant15Parser();
-
-    // set handlers
-    parser->set_publish_sensor([this](const std::string& name, float value) {
-      this->publish_sensor(name, value, false);
-    });
-    parser->set_publish_text_sensor([this](const std::string& name, const std::string& value)  {
-      this->publish_text_sensor(name, value, false);
-    });
-  } else {
+  
+  // get the frame parser for this variant
+  parser = FrameParser::get_parser(variant);
+  if (parser == nullptr) {
     ESP_LOGE(LOG_TAG, "INVERTER%u - invalid variant %u", address_, variant_);
+    return;
   }
+
+  // set handlers
+  parser->set_publish_sensor([this](const std::string& name, float value) {
+    this->publish_sensor(name, value, false);
+  });
+  parser->set_publish_text_sensor([this](const std::string& name, const std::string& value)  {
+    this->publish_text_sensor(name, value, false);
+  });
 }
 
 void DeltaSoliviaInverter::update_sensors(const uint8_t* buffer) {

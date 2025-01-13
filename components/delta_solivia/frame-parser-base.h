@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <string>
 #include <functional>
+#include "frame-parser-consts.h"
 
 namespace esphome {
 namespace delta_solivia {
@@ -11,7 +12,7 @@ namespace delta_solivia {
 using PublishSensorHandler     = std::function<void(const std::string&, float)>;
 using PublishTextSensorHandler = std::function<void(const std::string&, const std::string&)>;
 
-class BaseParser {
+class FrameParserBase {
   virtual void parse_frame_(const uint8_t* frame, std::size_t pos) = 0;
 
 protected:
