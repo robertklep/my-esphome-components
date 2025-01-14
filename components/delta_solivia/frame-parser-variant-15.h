@@ -1,6 +1,5 @@
 #pragma once
 
-#include <iostream>
 #include "frame-parser-base.h"
 
 namespace esphome {
@@ -34,51 +33,51 @@ class FrameParserVariant15 : public FrameParserBase {
     publish_sensor_("Software_rev_sc_bugfix", frame[pos++]); // SC bugfix
 
     // solar
-    publish_sensor_(CONF_INV_SOLAR_VOLTAGE_INPUT_1, extract_int16(&frame[pos])); // Volts
+    publish_sensor_(CONF_INV_SOLAR_VOLTAGE_PREFIX + std::to_string(1), extract_int16(&frame[pos])); // Volts
     pos += 2;
-    publish_sensor_(CONF_INV_SOLAR_CURRENT_INPUT_1, apply_scaling(extract_int16(&frame[pos]), 0.1)); // Amps
+    publish_sensor_(CONF_INV_SOLAR_CURRENT_PREFIX + std::to_string(1), extract_int16(&frame[pos]) * 0.1); // Amps
     pos += 2;
-    publish_sensor_(CONF_INV_SOLAR_ISO_RES_INPUT_1, apply_scaling(extract_int16(&frame[pos]), 1000)); // kOhms
+    publish_sensor_(CONF_INV_SOLAR_ISO_RES_INPUT_1, extract_int16(&frame[pos]) * 1000); // kOhms
     pos += 2;
     publish_sensor_(CONF_INV_TEMPERATURE_NTC_DC, extract_int16(&frame[pos])); // Celsius
     pos += 2;
-    publish_sensor_(CONF_INV_SOLAR_INPUT_MOV_RES, apply_scaling(extract_int16(&frame[pos]), 1000)); // kOhms
+    publish_sensor_(CONF_INV_SOLAR_INPUT_MOV_RES, extract_int16(&frame[pos]) * 1000); // kOhms
     pos += 2;
 
     // AC
-    publish_sensor_(CONF_INV_AC_CURRENT, apply_scaling(extract_int16(&frame[pos]), 0.1)); // Amps
+    publish_sensor_(CONF_INV_AC_CURRENT, extract_int16(&frame[pos]) * 0.1); // Amps
     pos += 2;
     publish_sensor_(CONF_INV_AC_VOLTAGE, extract_int16(&frame[pos])); // Volts
     pos += 2;
     publish_sensor_(CONF_INV_AC_POWER, extract_int16(&frame[pos])); // Watts
     pos += 2;
-    publish_sensor_(CONF_INV_AC_FREQ, apply_scaling(extract_int16(&frame[pos]), 0.01)); // Hertz
+    publish_sensor_(CONF_INV_AC_FREQ, extract_int16(&frame[pos]) * 0.01); // Hertz
     pos += 2;
     publish_sensor_(CONF_INV_TEMPERATURE_NTC_AC, extract_int16(&frame[pos])); // Celsius
     pos += 2;
 
     // SC grid
-    publish_sensor_(CONF_INV_SC_GRID_VOLTAGE, apply_scaling(extract_int16(&frame[pos]), 0.01)); // Volts
+    publish_sensor_(CONF_INV_SC_GRID_VOLTAGE, extract_int16(&frame[pos]) * 0.01); // Volts
     pos += 2;
-    publish_sensor_(CONF_INV_SC_GRID_FREQUENCY, apply_scaling(extract_int16(&frame[pos]), 0.01)); // Hertz
+    publish_sensor_(CONF_INV_SC_GRID_FREQUENCY, extract_int16(&frame[pos]) * 0.01); // Hertz
     pos += 2;
-    publish_sensor_(CONF_INV_SC_GRID_DC_INJ_CURRENT, apply_scaling(extract_int16(&frame[pos]), 0.01)); // Amps
+    publish_sensor_(CONF_INV_SC_GRID_DC_INJ_CURRENT, extract_int16(&frame[pos]) * 0.01); // Amps
     pos += 2;
 
     // AC grid
-    publish_sensor_(CONF_INV_AC_GRID_VOLTAGE, apply_scaling(extract_int16(&frame[pos]), 0.01)); // Volts
+    publish_sensor_(CONF_INV_AC_GRID_VOLTAGE, extract_int16(&frame[pos]) * 0.01); // Volts
     pos += 2;
-    publish_sensor_(CONF_INV_AC_GRID_FREQ, apply_scaling(extract_int16(&frame[pos]), 0.01)); // Hertz
+    publish_sensor_(CONF_INV_AC_GRID_FREQ, extract_int16(&frame[pos]) * 0.01); // Hertz
     pos += 2;
-    publish_sensor_(CONF_INV_AC_GRID_DC_INJ_CURRENT, apply_scaling(extract_int16(&frame[pos]), 0.01)); // Amps
+    publish_sensor_(CONF_INV_AC_GRID_DC_INJ_CURRENT, extract_int16(&frame[pos]) * 0.01); // Amps
     pos += 2;
 
     // energy info
-    publish_sensor_(CONF_INV_SUPPLIED_AC_ENERGY_TODAY, extract_int16(&frame[pos]) * 10); // Wh
+    publish_sensor_(CONF_INV_SUPPLIED_AC_ENERGY_TODAY, extract_int16(&frame[pos]) * 10.0); // Wh
     pos += 2;
-    publish_sensor_(CONF_INV_RUNTIME_TODAY, apply_scaling(extract_int16(&frame[pos]), 60)); // Minutes
+    publish_sensor_(CONF_INV_RUNTIME_TODAY, extract_int16(&frame[pos]) * 60.0); // Minutes
     pos += 2;
-    publish_sensor_(CONF_INV_MAX_AC_CURRENT_TODAY, apply_scaling(extract_int16(&frame[pos]), 0.1)); // Amps
+    publish_sensor_(CONF_INV_MAX_AC_CURRENT_TODAY, extract_int16(&frame[pos]) * 0.1); // Amps
     pos += 2;
     publish_sensor_(CONF_INV_MIN_AC_VOLTAGE_TODAY, extract_int16(&frame[pos])); // Volts
     pos += 2;
@@ -86,25 +85,25 @@ class FrameParserVariant15 : public FrameParserBase {
     pos += 2;
     publish_sensor_(CONF_INV_MAX_AC_POWER_TODAY, extract_int16(&frame[pos])); // Watts
     pos += 2;
-    publish_sensor_(CONF_INV_MIN_AC_FREQ_TODAY, apply_scaling(extract_int16(&frame[pos]), 0.01)); // Hertz
+    publish_sensor_(CONF_INV_MIN_AC_FREQ_TODAY, extract_int16(&frame[pos]) * 0.01); // Hertz
     pos += 2;
-    publish_sensor_(CONF_INV_MAX_AC_FREQ_TODAY, apply_scaling(extract_int16(&frame[pos]), 0.01)); // Hertz
+    publish_sensor_(CONF_INV_MAX_AC_FREQ_TODAY, extract_int16(&frame[pos]) * 0.01); // Hertz
     pos += 2;
-    publish_sensor_(CONF_INV_SUPPLIED_AC_ENERGY_TOTAL, apply_scaling(extract_int32(&frame[pos]), 0.1)); // kWh
+    publish_sensor_(CONF_INV_SUPPLIED_AC_ENERGY_TOTAL, extract_int32(&frame[pos]) * 0.1); // kWh
     pos += 4;
-    publish_sensor_(CONF_INV_RUNTIME_TOTAL, apply_scaling(extract_int32(&frame[pos]), 3600)); // Hours
+    publish_sensor_(CONF_INV_RUNTIME_TOTAL, extract_int32(&frame[pos]) * 3600.0); // Hours
     pos += 4;
 
     // minimums/maximums
-    publish_sensor_(CONF_INV_MAX_SOLAR_CURRENT_INPUT_1, apply_scaling(extract_int16(&frame[pos]), 0.1)); // Amps
+    publish_sensor_(CONF_INV_MAX_SOLAR_CURRENT_INPUT_1, extract_int16(&frame[pos]) * 0.1); // Amps
     pos += 2;
     publish_sensor_(CONF_INV_MAX_SOLAR_VOLTAGE_INPUT_1, extract_int16(&frame[pos])); // Volts
     pos += 2;
     publish_sensor_(CONF_INV_MAX_SOLAR_POWER_INPUT_1, extract_int16(&frame[pos])); // Watts
     pos += 2;
-    publish_sensor_(CONF_INV_MIN_SOLAR_ISO_RES_INPUT_1, apply_scaling(extract_int16(&frame[pos]), 1000)); // kOhms
+    publish_sensor_(CONF_INV_MIN_SOLAR_ISO_RES_INPUT_1, extract_int16(&frame[pos]) * 1000.0); // kOhms
     pos += 2;
-    publish_sensor_(CONF_INV_MAX_SOLAR_ISO_RES_INPUT_1, apply_scaling(extract_int16(&frame[pos]), 1000)); // kOhms
+    publish_sensor_(CONF_INV_MAX_SOLAR_ISO_RES_INPUT_1, extract_int16(&frame[pos]) * 1000); // kOhms
     pos += 2;
 
     // limits and status

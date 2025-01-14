@@ -3,6 +3,7 @@
 #include <memory>
 #include "frame-parser-base.h"
 #include "frame-parser-variant-15.h"
+#include "frame-parser-variant-212.h"
 
 namespace esphome {
 namespace delta_solivia {
@@ -17,6 +18,9 @@ public:
         variant == 34 || variant == 35 || variant == 36 || variant == 38 || variant == 39 ||
         variant == 55 || variant == 58 || variant == 59 || variant == 60) {
       return FrameParserInstance(new FrameParserVariant15());
+    }
+    if (variant >= 212 && variant <= 222) {
+      return FrameParserInstance(new FrameParserVariant212());
     }
     return nullptr;
   }

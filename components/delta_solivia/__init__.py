@@ -56,6 +56,16 @@ CONF_INV_SERIAL_NUMBER             = "serial_number"
 
 CONF_INV_SOLAR_VOLTAGE_INPUT_1     = "solar_voltage_input_1"
 CONF_INV_SOLAR_CURRENT_INPUT_1     = "solar_current_input_1"
+CONF_INV_SOLAR_POWER_INPUT_1       = "solar_power_input_1"
+
+CONF_INV_SOLAR_VOLTAGE_INPUT_2     = "solar_voltage_input_2"
+CONF_INV_SOLAR_CURRENT_INPUT_2     = "solar_current_input_2"
+CONF_INV_SOLAR_POWER_INPUT_2       = "solar_power_input_2"
+
+CONF_INV_SOLAR_VOLTAGE_INPUT_3     = "solar_voltage_input_3"
+CONF_INV_SOLAR_CURRENT_INPUT_3     = "solar_current_input_3"
+CONF_INV_SOLAR_POWER_INPUT_3       = "solar_power_input_3"
+
 CONF_INV_SOLAR_ISO_RES_INPUT_1     = "solar_isolation_resistance_input_1"
 CONF_INV_SOLAR_INPUT_MOV_RES       = "solar_input_mov_resistance"
 
@@ -66,6 +76,21 @@ CONF_INV_AC_CURRENT                = "ac_current"
 CONF_INV_AC_VOLTAGE                = "ac_voltage"
 CONF_INV_AC_POWER                  = "ac_power"
 CONF_INV_AC_FREQ                   = "ac_frequency"
+
+CONF_INV_AC_CURRENT_PHASE_1        = "ac_current_phase_1"
+CONF_INV_AC_VOLTAGE_PHASE_1        = "ac_voltage_phase_1"
+CONF_INV_AC_POWER_PHASE_1          = "ac_power_phase_1"
+CONF_INV_AC_FREQ_PHASE_1           = "ac_frequency_phase_1"
+
+CONF_INV_AC_CURRENT_PHASE_2        = "ac_current_phase_2"
+CONF_INV_AC_VOLTAGE_PHASE_2        = "ac_voltage_phase_2"
+CONF_INV_AC_POWER_PHASE_2          = "ac_power_phase_2"
+CONF_INV_AC_FREQ_PHASE_2           = "ac_frequency_phase_2"
+
+CONF_INV_AC_CURRENT_PHASE_3        = "ac_current_phase_3"
+CONF_INV_AC_VOLTAGE_PHASE_3        = "ac_voltage_phase_3"
+CONF_INV_AC_POWER_PHASE_3          = "ac_power_phase_3"
+CONF_INV_AC_FREQ_PHASE_3           = "ac_frequency_phase_3"
 
 CONF_INV_SC_GRID_VOLTAGE           = "sc_grid_voltage"
 CONF_INV_SC_GRID_FREQUENCY         = "sc_grid_frequency"
@@ -142,6 +167,55 @@ INVERTER_SCHEMA = cv.Schema({
         device_class = DEVICE_CLASS_CURRENT,
         state_class = STATE_CLASS_MEASUREMENT
     ),
+    cv.Optional(CONF_INV_SOLAR_POWER_INPUT_1): sensor.sensor_schema(
+        unit_of_measurement = UNIT_WATT,
+        icon = 'mdi:solar-power',
+        accuracy_decimals = 0,
+        device_class = DEVICE_CLASS_POWER,
+        state_class = STATE_CLASS_MEASUREMENT
+    ),
+    cv.Optional(CONF_INV_SOLAR_VOLTAGE_INPUT_2): sensor.sensor_schema(
+        unit_of_measurement = UNIT_VOLT,
+        icon = 'mdi:solar-power',
+        accuracy_decimals = 0,
+        device_class = DEVICE_CLASS_VOLTAGE,
+        state_class = STATE_CLASS_MEASUREMENT
+    ),
+    cv.Optional(CONF_INV_SOLAR_CURRENT_INPUT_2): sensor.sensor_schema(
+        unit_of_measurement = UNIT_AMPERE,
+        icon = 'mdi:current-dc',
+        accuracy_decimals = 1,
+        device_class = DEVICE_CLASS_CURRENT,
+        state_class = STATE_CLASS_MEASUREMENT
+    ),
+    cv.Optional(CONF_INV_SOLAR_POWER_INPUT_2): sensor.sensor_schema(
+        unit_of_measurement = UNIT_WATT,
+        icon = 'mdi:solar-power',
+        accuracy_decimals = 0,
+        device_class = DEVICE_CLASS_POWER,
+        state_class = STATE_CLASS_MEASUREMENT
+    ),
+    cv.Optional(CONF_INV_SOLAR_VOLTAGE_INPUT_3): sensor.sensor_schema(
+        unit_of_measurement = UNIT_VOLT,
+        icon = 'mdi:solar-power',
+        accuracy_decimals = 0,
+        device_class = DEVICE_CLASS_VOLTAGE,
+        state_class = STATE_CLASS_MEASUREMENT
+    ),
+    cv.Optional(CONF_INV_SOLAR_CURRENT_INPUT_3): sensor.sensor_schema(
+        unit_of_measurement = UNIT_AMPERE,
+        icon = 'mdi:current-dc',
+        accuracy_decimals = 1,
+        device_class = DEVICE_CLASS_CURRENT,
+        state_class = STATE_CLASS_MEASUREMENT
+    ),
+    cv.Optional(CONF_INV_SOLAR_POWER_INPUT_3): sensor.sensor_schema(
+        unit_of_measurement = UNIT_WATT,
+        icon = 'mdi:solar-power',
+        accuracy_decimals = 0,
+        device_class = DEVICE_CLASS_POWER,
+        state_class = STATE_CLASS_MEASUREMENT
+    ),
     cv.Optional(CONF_INV_SOLAR_ISO_RES_INPUT_1): sensor.sensor_schema(
         unit_of_measurement = UNIT_OHM,
         icon = 'mdi:omega',
@@ -192,6 +266,90 @@ INVERTER_SCHEMA = cv.Schema({
         state_class = STATE_CLASS_MEASUREMENT
     ),
     cv.Optional(CONF_INV_AC_FREQ): sensor.sensor_schema(
+        unit_of_measurement = UNIT_HERTZ,
+        icon = 'mdi:sine-wave',
+        accuracy_decimals = 2,
+        device_class = DEVICE_CLASS_FREQUENCY,
+        state_class = STATE_CLASS_MEASUREMENT
+    ),
+    cv.Optional(CONF_INV_AC_CURRENT_PHASE_1): sensor.sensor_schema(
+        unit_of_measurement = UNIT_AMPERE,
+        icon = 'mdi:current-ac',
+        accuracy_decimals = 1,
+        device_class = DEVICE_CLASS_CURRENT,
+        state_class = STATE_CLASS_MEASUREMENT
+    ),
+    cv.Optional(CONF_INV_AC_VOLTAGE_PHASE_1): sensor.sensor_schema(
+        unit_of_measurement = UNIT_VOLT,
+        icon = 'mdi:solar-power',
+        accuracy_decimals = 0,
+        device_class = DEVICE_CLASS_VOLTAGE,
+        state_class = STATE_CLASS_MEASUREMENT
+    ),
+    cv.Optional(CONF_INV_AC_POWER_PHASE_1): sensor.sensor_schema(
+        unit_of_measurement = UNIT_WATT,
+        icon = 'mdi:solar-power',
+        accuracy_decimals = 0,
+        device_class = DEVICE_CLASS_POWER,
+        state_class = STATE_CLASS_MEASUREMENT
+    ),
+    cv.Optional(CONF_INV_AC_FREQ_PHASE_1): sensor.sensor_schema(
+        unit_of_measurement = UNIT_HERTZ,
+        icon = 'mdi:sine-wave',
+        accuracy_decimals = 2,
+        device_class = DEVICE_CLASS_FREQUENCY,
+        state_class = STATE_CLASS_MEASUREMENT
+    ),
+    cv.Optional(CONF_INV_AC_CURRENT_PHASE_2): sensor.sensor_schema(
+        unit_of_measurement = UNIT_AMPERE,
+        icon = 'mdi:current-ac',
+        accuracy_decimals = 1,
+        device_class = DEVICE_CLASS_CURRENT,
+        state_class = STATE_CLASS_MEASUREMENT
+    ),
+    cv.Optional(CONF_INV_AC_VOLTAGE_PHASE_2): sensor.sensor_schema(
+        unit_of_measurement = UNIT_VOLT,
+        icon = 'mdi:solar-power',
+        accuracy_decimals = 0,
+        device_class = DEVICE_CLASS_VOLTAGE,
+        state_class = STATE_CLASS_MEASUREMENT
+    ),
+    cv.Optional(CONF_INV_AC_POWER_PHASE_2): sensor.sensor_schema(
+        unit_of_measurement = UNIT_WATT,
+        icon = 'mdi:solar-power',
+        accuracy_decimals = 0,
+        device_class = DEVICE_CLASS_POWER,
+        state_class = STATE_CLASS_MEASUREMENT
+    ),
+    cv.Optional(CONF_INV_AC_FREQ_PHASE_2): sensor.sensor_schema(
+        unit_of_measurement = UNIT_HERTZ,
+        icon = 'mdi:sine-wave',
+        accuracy_decimals = 2,
+        device_class = DEVICE_CLASS_FREQUENCY,
+        state_class = STATE_CLASS_MEASUREMENT
+    ),
+    cv.Optional(CONF_INV_AC_CURRENT_PHASE_3): sensor.sensor_schema(
+        unit_of_measurement = UNIT_AMPERE,
+        icon = 'mdi:current-ac',
+        accuracy_decimals = 1,
+        device_class = DEVICE_CLASS_CURRENT,
+        state_class = STATE_CLASS_MEASUREMENT
+    ),
+    cv.Optional(CONF_INV_AC_VOLTAGE_PHASE_3): sensor.sensor_schema(
+        unit_of_measurement = UNIT_VOLT,
+        icon = 'mdi:solar-power',
+        accuracy_decimals = 0,
+        device_class = DEVICE_CLASS_VOLTAGE,
+        state_class = STATE_CLASS_MEASUREMENT
+    ),
+    cv.Optional(CONF_INV_AC_POWER_PHASE_3): sensor.sensor_schema(
+        unit_of_measurement = UNIT_WATT,
+        icon = 'mdi:solar-power',
+        accuracy_decimals = 0,
+        device_class = DEVICE_CLASS_POWER,
+        state_class = STATE_CLASS_MEASUREMENT
+    ),
+    cv.Optional(CONF_INV_AC_FREQ_PHASE_3): sensor.sensor_schema(
         unit_of_measurement = UNIT_HERTZ,
         icon = 'mdi:sine-wave',
         accuracy_decimals = 2,

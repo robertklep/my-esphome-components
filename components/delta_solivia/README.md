@@ -10,6 +10,10 @@ The document "Public Solar Inverter Communication Protocol (Version 1.2)", from 
 
 The component does not perform any checks to see if it's talking to a supported inverter, but just assumes it does, so using it for a different type of inverter will probably cause the component to either crash or to provide incorrect data. Nothing bad will happen with your inverter if you do try this.
 
+## ESPHome sensor configuration
+
+Because there are so many protocol variants, the exact sensor configuration for each Solivia model may differ. [See below](#sensor-fields) for the fields that are available for each variant.
+
 ## HARDWARE
 
 ### MCU
@@ -182,23 +186,23 @@ The `throttle` option for each inverter will limit the amount of state updates s
 | 11     | SI 11kW (3 phases module of CM/CS) | ❌ |        |
 | 14     | SOLIVIA 5.0 EU G3         | ❌        |        |
 | 15     | SOLIVIA 2.5 EU G3         | ✅        | Variant15 |
-| 18     | SOLIVIA 3.0 EU G3         | ✅        | Variant15 |
-| 19     | SOLIVIA 3.3 EU G3         | ✅        | Variant15 |
-| 20     | SOLIVIA 3.6 EU G3         | ✅        | Variant15 |
+| 18     | SOLIVIA 3.0 EU G3         | ✅        | " |
+| 19     | SOLIVIA 3.3 EU G3         | ✅        | " |
+| 20     | SOLIVIA 3.6 EU G3         | ✅        | " |
 | 27     | SOLIVIA 15 EU TL          | ❌        |        |
 | 28     | SOLIVIA 20 EU TL          | ❌        |        |
 | 31     | SOLIVIA 2.5 NA G4         | ✅        | Variant15 |
-| 34     | SOLIVIA 3.0 NA G4         | ✅        | Variant15 |
-| 35     | SOLIVIA 3.3 NA G4         | ✅        | Variant15 |
-| 36     | SOLIVIA 3.6 NA G4         | ✅        | Variant15 |
-| 38     | SOLIVIA 4.4 NA G4         | ✅        | Variant15 |
-| 39     | SOLIVIA 5.0 NA G4         | ✅        | Variant15 |
+| 34     | SOLIVIA 3.0 NA G4         | ✅        | " |
+| 35     | SOLIVIA 3.3 NA G4         | ✅        | " |
+| 36     | SOLIVIA 3.6 NA G4         | ✅        | " |
+| 38     | SOLIVIA 4.4 NA G4         | ✅        | " |
+| 39     | SOLIVIA 5.0 NA G4         | ✅        | " |
 | 43     | SOLIVIA 15 EU TL G4       | ❌        |        |
 | 44     | SOLIVIA 20 EU TL G4       | ❌        |        |
 | 55     | SOLIVIA 2.5 AP G3         | ✅        | Variant15 |
-| 58     | SOLIVIA 3.0 AP G3         | ✅        | Variant15 |
-| 59     | SOLIVIA 3.3 AP G3         | ✅        | Variant15 |
-| 60     | SOLIVIA 3.6 AP G3         | ✅        | Variant15 |
+| 58     | SOLIVIA 3.0 AP G3         | ✅        | " |
+| 59     | SOLIVIA 3.3 AP G3         | ✅        | " |
+| 60     | SOLIVIA 3.6 AP G3         | ✅        | " |
 | 63     | SOLIVIA 5.0 AP G3         | ❌        |        |
 | 85     | SOLIVIA 3.0 EU T4 TL      | ❌        |        |
 | 88     | SOLIVIA 5.0 EU T4 TL      | ❌        |        |
@@ -241,14 +245,86 @@ The `throttle` option for each inverter will limit the amount of state updates s
 | 209    | RPI H3A                   | ❌        |        |
 | 210    | RPI H4A                   | ❌        |        |
 | 211    | RPI H5A                   | ❌        |        |
-| 212    | RPI H3A                   | ❌        |        |
-| 213    | RPI H4A                   | ❌        |        |
-| 214    | RPI H5A                   | ❌        |        |
-| 215    | RPI M6A                   | ❌        |        |
-| 216    | RPI M8A                   | ❌        |        |
-| 217    | RPI M10A                  | ❌        |        |
-| 218    | PRI M50A                  | ❌        |        |
-| 219    | RPI M30A                  | ❌        |        |
-| 220    | RPI M15A                  | ❌        |        |
-| 221    | RPI M20A                  | ❌        |        |
-| 222    | RPI H3                    | ❌        |        |
+| 212    | RPI H3A                   | ✅        | Variant 212 (untested) |
+| 213    | RPI H4A                   | ✅        | "      |
+| 214    | RPI H5A                   | ✅        | "      |
+| 215    | RPI M6A                   | ✅        | "      |
+| 216    | RPI M8A                   | ✅        | "      |
+| 217    | RPI M10A                  | ✅        | "      |
+| 218    | PRI M50A                  | ✅        | "      |
+| 219    | RPI M30A                  | ✅        | "      |
+| 220    | RPI M15A                  | ✅        | "      |
+| 221    | RPI M20A                  | ✅        | "      |
+| 222    | RPI H3                    | ✅        | "      |
+
+## Sensor Fields
+
+These fields can be configured for each variant.
+
+### Variant 15
+
+```
+part_number
+serial_number
+solar_voltage_input_1
+solar_current_input_1
+solar_isolation_resistance_input_1
+temperature_ntc_dc
+solar_input_mov_resistance
+ac_current
+ac_voltage
+ac_power
+ac_frequency
+temperature_ntc_ac
+sc_grid_voltage
+sc_grid_frequency
+sc_grid_dc_injection_current
+ac_grid_voltage
+ac_grid_frequency
+ac_grid_dc_injection_current
+supplied_ac_energy_today
+runtime_today
+max_ac_current_today
+min_ac_voltage_today
+max_ac_voltage_today
+max_ac_power_today
+min_ac_frequency_today
+max_ac_frequency_today
+supplied_ac_energy_total
+runtime_total
+max_solar_current_input_1
+max_solar_voltage_input_1
+max_solar_power_input_1
+min_solar_isolation_resistance_input_1
+max_solar_isolation_resistance_input_1
+```
+
+### Variant 212
+
+```
+part_number
+serial_number
+ac_voltage_phase_1
+ac_current_phase_1
+ac_power_phase_1
+ac_frequency_phase_1
+ac_voltage_phase_2
+ac_current_phase_2
+ac_power_phase_2
+ac_frequency_phase_2
+ac_voltage_phase_3
+ac_current_phase_3
+ac_power_phase_3
+ac_frequency_phase_3
+solar_voltage_input_1
+solar_current_input_1
+solar_power_input_1
+solar_voltage_input_3
+solar_current_input_3
+solar_power_input_3
+ac_power
+runtime_today
+runtime_total
+supplied_ac_energy_today
+supplied_ac_energy_total
+```
