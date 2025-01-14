@@ -79,9 +79,9 @@ delta_solivia:
       runtime_today:
         name: 'Inverter#1 Runtime Today'
       max_ac_power_today:
-        name: 'Inverter#1 AC Power Today'
+        name: 'Inverter#1 Max AC Power Today'
       max_solar_input_power:
-        name: 'Inverter#1 Solar Input Power'
+        name: 'Inverter#1 Max Solar Input Power'
     - address: 2
       variant: 15
       throttle: 30s
@@ -116,6 +116,6 @@ delta_solivia:
       runtime_today:
         name: 'Inverter#2 Runtime Today'
       max_ac_power_today:
-        name: 'Inverter#2 AC Power Today'
+        name: 'Inverter#2 Max AC Power Today'
       max_solar_input_power:
-        name: 'Inverter#2 Solar Input Power'
+        name: 'Inverter#2 Max Solar Input Power'
