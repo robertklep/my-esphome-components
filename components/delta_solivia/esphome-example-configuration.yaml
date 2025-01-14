@@ -3,7 +3,7 @@ esphome:
   friendly_name: 'Delta Solivia Reader'
 
 external_components:
-  - source: github://robertklep/my-esphome-components
+  - source: github://robertklep/my-esphome-components@v2
     components: [ delta_solivia ]
 
 esp32:
@@ -46,6 +46,7 @@ delta_solivia:
   update_interval: 10s        # see README.md
   inverters:
     - address: 1
+      variant: 15
       throttle: 30s           # see README.md
       part_number:
         name: 'Inverter#1 Part Number'
@@ -53,9 +54,9 @@ delta_solivia:
         name: 'Inverter#1 Serial Number'
       ac_power:
         name: 'Inverter#1 Current Power'
-      total_energy:
+      supplied_ac_energy_total:
         name: 'Inverter#1 Total Energy'
-      today_energy:
+      supplied_ac_energy_today:
         name: 'Inverter#1 Today Energy'
         filters:
           - timeout: 2h
@@ -82,6 +83,7 @@ delta_solivia:
       max_solar_input_power:
         name: 'Inverter#1 Solar Input Power'
     - address: 2
+      variant: 15
       throttle: 30s
       part_number:
         name: 'Inverter#2 Part Number'
@@ -89,9 +91,9 @@ delta_solivia:
         name: 'Inverter#2 Serial Number'
       ac_power:
         name: 'Inverter#2 Current Power'
-      total_energy:
+      supplied_ac_energy_total:
         name: 'Inverter#2 Total Energy'
-      today_energy:
+      supplied_ac_energy_today:
         name: 'Inverter#2 Today Energy'
         filters:
           - timeout: 2h

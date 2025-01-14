@@ -2,17 +2,23 @@
 
 This component for ESPHome can be used to directly read measurement/statistics data from the RS485 port of _some_ Delta Solivia inverters. It does not require having a Solivia Gateway device, but will work if you have one.
 
-## SYNOPSIS
+## Requirements
 
-The document "Public Solar Inverter Communication Protocol (Version 1.2)", from Delta Energy Systems (Germany) GmbH, documents the protocol that Delta Solivia inverters use over their RS485 port. There are dozens of Solivia models, and about 10 different protocol variants.
+* An ESP32
+* An RS-485 module
+* An ESPHome setup
 
-[See below](#compatibility-table) for a list of supported models.
+For more information on the hardware requirements, see ["Hardware"](#hardware) below.
+
+## Supported models
+
+There are dozens of Solivia models, and about 10 different protocol variants. The document "Public Solar Inverter Communication Protocol (Version 1.2)", from Delta Energy Systems (Germany) GmbH, documents the protocol that the inverters use over their RS485 port. The document can be found by DuckDuckGo'ing for its title.
+
+Only a limited number of models is supported by this component at the moment ([see below](#compatibility-table)).
 
 The component does not perform any checks to see if it's talking to a supported inverter, but just assumes it does, so using it for a different type of inverter will probably cause the component to either crash or to provide incorrect data. Nothing bad will happen with your inverter if you do try this.
 
-## ESPHome sensor configuration
-
-Because there are so many protocol variants, the exact sensor configuration for each Solivia model may differ. [See below](#sensor-fields) for the fields that are available for each variant.
+Because not all models provide the same data fields, the exact component configuration for each model is different. [See below](#sensor-fields) for the fields that are available for each variant. There is no validation to check if a configured field applies to the protocol variant of your inverter, but it's not a problem if you configure a field that isn't supported by your inverter.
 
 ## HARDWARE
 
@@ -89,14 +95,18 @@ delta_solivia:
   # Each inverter has a unique address, usually starting with "1" for the
   # first inverter, "2" for the second, etc.
   #
+  # You need to specify the "variant" used for each inverter.
+  # See the compatibility table.
+  # As explained, the different sensor that can be configured
+  # depend on the variant. If you're not interested in a specific
+  # sensor, just leave it out, they're all optional.
+  #
   # You can run the component with debug logging in ESPHome enabled,
   # which will log information on the packets it receives, including
   # the address from which the packet originated.
-  #
-  # For each inverter, a number of sensors is available. If you're not
-  # interested in a specific sensor, just leave it out.
   inverters:
     - address: 1
+      variant: 15
       throttle: 10s # see below
       part_number:
         name: 'Inverter#1 Part Number'
@@ -104,9 +114,9 @@ delta_solivia:
         name: 'Inverter#1 Serial Number'
       ac_power:
         name: 'Inverter#1 Current Power'
-      total_energy:
+      supplied_ac_energy_total:
         name: 'Inverter#1 Total Energy'
-      today_energy:
+      supplied_ac_energy_today:
         name: 'Inverter#1 Today Energy'
       dc_voltage:
         name: 'Inverter#1 DC Voltage'
@@ -131,15 +141,16 @@ delta_solivia:
       max_solar_input_power:
         name: 'Inverter#1 Solar Input Power'
     - address: 2
+      variant: 15
       part_number:
         name: 'Inverter#2 Part Number'
       serial_number:
         name: 'Inverter#2 Serial Number'
       ac_power:
         name: 'Inverter#2 Current Power'
-      total_energy:
+      supplied_ac_energy_total:
         name: 'Inverter#2 Total Energy'
-      today_energy:
+      supplied_ac_energy_today:
         name: 'Inverter#2 Today Energy'
       dc_voltage:
         name: 'Inverter#2 DC Voltage'

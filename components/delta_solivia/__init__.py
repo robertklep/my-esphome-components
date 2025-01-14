@@ -41,12 +41,12 @@ DeltaSoliviaComponent = delta_solivia_ns.class_("DeltaSoliviaComponent", uart.UA
 DeltaSoliviaInverter  = delta_solivia_ns.class_("DeltaSoliviaInverter")
 
 # global config
-CONF_INVERTERS = "inverters"
+CONF_INVERTERS   = "inverters"
 CONF_HAS_GATEWAY = "has_gateway"
 
 # per-inverter config
 CONF_INV_ADDRESS  = "address"
-CONF_INV_VARIANT = "variant"
+CONF_INV_VARIANT  = "variant"
 CONF_INV_THROTTLE = "throttle"
 
 # per-inverter measurements
@@ -149,7 +149,7 @@ def _validate_inverters(config):
 INVERTER_SCHEMA = cv.Schema({
     cv.GenerateID(): cv.declare_id(DeltaSoliviaInverter),
     cv.Required(CONF_INV_ADDRESS): cv.int_range(min = 1),
-    cv.Optional(CONF_INV_VARIANT, default = 15): cv.int_range(min = 1, max = 222),
+    cv.Required(CONF_INV_VARIANT): cv.int_range(min = 1, max = 222),
     cv.Optional(CONF_INV_THROTTLE, default = '10s'): cv.update_interval,
     cv.Optional(CONF_INV_PART_NUMBER): text_sensor.text_sensor_schema(),
     cv.Optional(CONF_INV_SERIAL_NUMBER): text_sensor.text_sensor_schema(),
