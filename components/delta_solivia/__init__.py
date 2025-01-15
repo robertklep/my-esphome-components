@@ -122,7 +122,8 @@ CONF_INV_MAX_SOLAR_ISO_RES_INPUT_1 = "max_solar_isolation_resistance_input_1"
 
 # supported variants and their parser
 SUPPORTED_VARIANTS = {
-    ( 15, 18, 19, 20, 31, 34, 35, 36, 38, 39, 55, 58, 59, 60 ) : 'Variant15Parser'
+    ( 15, 18, 19, 20, 31, 34, 35, 36, 38, 39, 55, 58, 59, 60 ): 'Variant15Parser',
+    ( 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222 ):  'Variant212Parser'
 }
 
 def _parser_for_variant(variant):
