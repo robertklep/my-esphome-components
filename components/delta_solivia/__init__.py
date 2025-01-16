@@ -452,7 +452,7 @@ INVERTER_SCHEMA = cv.Schema({
         unit_of_measurement = UNIT_KILOWATT_HOURS,
         icon = 'mdi:meter-electric',
         accuracy_decimals = 1,
-        device_class = DEVICE_CLASS_POWER,
+        device_class = DEVICE_CLASS_ENERGY,
         state_class = STATE_CLASS_TOTAL_INCREASING
     ),
     cv.Optional(CONF_INV_RUNTIME_TOTAL): sensor.sensor_schema(
