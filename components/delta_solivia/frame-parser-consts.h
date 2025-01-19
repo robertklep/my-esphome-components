@@ -1,5 +1,8 @@
 #pragma once
 
+namespace esphome {
+namespace delta_solivia {
+
 // these should match the values in __init__.py
 static const char* CONF_INV_PART_NUMBER = "part_number";
 static const char* CONF_INV_SERIAL_NUMBER = "serial_number";
@@ -51,3 +54,6 @@ static const char* CONF_INV_MAX_SOLAR_POWER_INPUT_1 = "max_solar_power_input_1";
 
 static const char* CONF_INV_MIN_SOLAR_ISO_RES_INPUT_1 = "min_solar_isolation_resistance_input_1";
 static const char* CONF_INV_MAX_SOLAR_ISO_RES_INPUT_1 = "max_solar_isolation_resistance_input_1";
+
+}
+}
