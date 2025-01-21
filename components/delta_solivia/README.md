@@ -62,7 +62,7 @@ If you don't have the necessary tools to crimp Ethernet cables, or you just want
 ```
 # Load as external component
 external_components:
-  - source: github://robertklep/my-esphome-components@v2
+  - source: github://robertklep/my-esphome-components@v2.0.1
     components: [ delta_solivia ]
 
 # UART setup (change tx_pin/rx_pin if required, leave the rest as-is)

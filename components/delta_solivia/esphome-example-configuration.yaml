@@ -3,7 +3,7 @@ esphome:
   friendly_name: 'Delta Solivia Reader'
 
 external_components:
-  - source: github://robertklep/my-esphome-components@v2
+  - source: github://robertklep/my-esphome-components@v2.0.1
     components: [ delta_solivia ]
 
 esp32:
