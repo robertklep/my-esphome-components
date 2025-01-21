@@ -1,12 +1,12 @@
 #pragma once
 
-#include "frame-parser-base.h"
+#include "frame-parser-interface.h"
 
 namespace esphome {
 namespace delta_solivia {
 
-class FrameParserVariant212 : public FrameParserBase {
-  void parse_frame_(const uint8_t* frame, std::size_t pos) {
+class FrameParserVariant212 : public IFrameParser {
+  void parse_frame_(const uint8_t* frame, std::size_t pos) override {
       // SAP part number
       publish_text_sensor_(CONF_INV_PART_NUMBER, parse_string(frame, pos, 11));
       pos += 11;

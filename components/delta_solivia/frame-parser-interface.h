@@ -12,8 +12,8 @@ namespace delta_solivia {
 using PublishSensorHandler     = std::function<void(const std::string&, float)>;
 using PublishTextSensorHandler = std::function<void(const std::string&, const std::string&)>;
 
-class FrameParserBase {
-  virtual void parse_frame_(const uint8_t* frame, std::size_t pos) = 0;
+class IFrameParser {
+  virtual void parse_frame_(const uint8_t*, std::size_t) = 0;
 
 protected:
   int16_t extract_int16(const uint8_t *data) {

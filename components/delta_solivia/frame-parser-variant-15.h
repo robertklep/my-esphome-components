@@ -1,13 +1,13 @@
 #pragma once
 
-#include "frame-parser-base.h"
+#include "frame-parser-interface.h"
 
 namespace esphome {
 namespace delta_solivia {
 
 // page 25
-class FrameParserVariant15 : public FrameParserBase {
-  void parse_frame_(const uint8_t* frame, std::size_t pos) {
+class FrameParserVariant15 : public IFrameParser {
+  void parse_frame_(const uint8_t* frame, std::size_t pos) override {
     // XXX: sensor names should match `CONF_INV_*` values in __init__.py
     publish_text_sensor_(CONF_INV_PART_NUMBER, parse_string(frame, pos, 11));
     pos += 11;

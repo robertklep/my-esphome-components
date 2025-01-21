@@ -26,7 +26,7 @@ class DeltaSoliviaInverter {
     uint8_t variant_;
     SensorMap sensors_;
     TextSensorMap text_sensors_;
-    FrameParserInstance parser;
+    FrameParser parser_;
 
   public:
     DeltaSoliviaInverter(uint8_t address, uint8_t variant);
