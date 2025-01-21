@@ -6,7 +6,8 @@ Each version is available as a separate Git branch, with its own documentation.
 
 # Versions
 
-The current latest version is [v2](https://github.com/robertklep/my-esphome-components/tree/v2/components/delta_solivia).
+The current latest version is [v2.0.1](https://github.com/robertklep/my-esphome-components/tree/v2.0.1/components/delta_solivia).
 
+* [v2.0.1](https://github.com/robertklep/my-esphome-components/tree/v2.0.1/components/delta_solivia)
 * [v2](https://github.com/robertklep/my-esphome-components/tree/v2/components/delta_solivia)
 * [v1](https://github.com/robertklep/my-esphome-components/tree/v1/components/delta_solivia)
