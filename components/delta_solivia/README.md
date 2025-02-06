@@ -92,18 +92,15 @@ delta_solivia:
 
   # Here you can configure multiple inverters.
   #
-  # Each inverter has a unique address, usually starting with "1" for the
-  # first inverter, "2" for the second, etc.
+  # Each inverter has a unique address, usually starting with "1" for the first inverter, "2" for the second, etc.
   #
-  # You need to specify the "variant" used for each inverter.
-  # See the compatibility table.
-  # As explained, the different sensor that can be configured
-  # depend on the variant. If you're not interested in a specific
-  # sensor, just leave it out, they're all optional.
+  # You need to specify the "variant" used for each inverter. See the compatibility table.
   #
-  # You can run the component with debug logging in ESPHome enabled,
-  # which will log information on the packets it receives, including
-  # the address from which the packet originated.
+  # As explained in the README, the different sensors that can be configured depend on the variant. Look below for the Sensor Fields documentation to see which fields are available for each variant.
+  # If you're not interested in a specific sensor, just leave it out, they're all optional.
+  #
+  # You can run the component with debug logging in ESPHome enabled, which will log information on the packets it receives, including the address from which the packet originated.
+
   inverters:
     - address: 1
       variant: 15
@@ -256,7 +253,7 @@ The `throttle` option for each inverter will limit the amount of state updates s
 | 209    | RPI H3A                   | ❌        |        |
 | 210    | RPI H4A                   | ❌        |        |
 | 211    | RPI H5A                   | ❌        |        |
-| 212    | RPI H3A                   | ✅        | Variant 212 (untested) |
+| 212    | RPI H3A                   | ✅        | Variant 212 |
 | 213    | RPI H4A                   | ✅        | "      |
 | 214    | RPI H5A                   | ✅        | "      |
 | 215    | RPI M6A                   | ✅        | "      |
